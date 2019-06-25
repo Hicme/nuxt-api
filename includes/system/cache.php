@@ -5,7 +5,6 @@ namespace system;
 class Cache
 {
   private $expire;
-  //hello
 
   use \system\Instance;
 

@@ -20,6 +20,32 @@ class Extends_Product
             'get_callback'    => [ $this, 'get_product_meta' ],
           ]
     );
+
+    register_rest_field( 'product',
+      'sidebar_settings',
+      [
+        'get_callback'    => [ $this, 'get_sidebar_settings' ],
+      ]
+    );
+
+  }
+
+  public function get_sidebar_settings( $object, $field_name, $request )
+  {
+
+    $id = $object['id'];
+
+    if ( is_wp_error( $id ) ) {
+      return $id;
+    }
+
+    $data = false;
+
+    if( !empty( $show = get_post_meta( $id, '_show_sidebar', true ) ) ){
+      $data = true;
+    }
+
+    return $data;
   }
 
   public function get_product_meta( $object, $field_name, $request )

@@ -55,9 +55,9 @@ final class StartUp
             new \system\Cron();
         }
 
-        if( $this->is_request( 'ajax' ) ){
+        // if( $this->is_request( 'ajax' ) ){
             new \system\Ajax();
-        }
+        // }
 
         if( $this->is_request( 'admin' ) ){
             new \admin\Admin_Startup();

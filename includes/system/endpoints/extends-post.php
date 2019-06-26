@@ -15,11 +15,11 @@ class Extends_Post extends \WP_REST_Controller
   public function add_sidebar_settings()
   {
     register_rest_field( 'post',
-	        'sidebar_settings',
-	        [
-	          'get_callback'    => [ $this, 'get_sidebar_settings' ],
-	        ]
-	    );
+      'sidebar_settings',
+      [
+        'get_callback'    => [ $this, 'get_sidebar_settings' ],
+      ]
+	  );
   }
 
   public function get_sidebar_settings( $object, $field_name, $request )

@@ -13,7 +13,7 @@ class Admin_Startup
 
     public function add_sidebar_settings()
     {
-        $screens = [ 'post', 'page' ];
+        $screens = [ 'post', 'page', 'product' ];
         add_meta_box( 'myplugin_sectionid', __( 'Sidebar Settings', 'nuxtapi' ), [ $this, 'sidebar_settings_html' ], $screens, 'side', 'core' );
     }
 

@@ -146,7 +146,15 @@ class Ajax{
 
   public function get_user_account_info()
   {
+    if( is_user_logged_in() ){
+      if( $user = get_user_by( 'ID', get_current_user_id() ) ){
+        wp_send_json( [ 'response' => 'sucess', 'user_datas' => $user ], 200 );
+      }
 
+      wp_send_json( [ 'response' => 'not_fount' ], 404 );
+    }
+
+    wp_send_json( [ 'response' => 'unauthorized' ], 401 );
   }
 
 }

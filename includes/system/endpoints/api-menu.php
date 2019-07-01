@@ -10,6 +10,8 @@ class Api_Menu extends \WP_REST_Controller
   public function __construct()
   {
     add_action( 'rest_api_init', [ $this, 'register_menu_route' ], 10 );
+
+    add_action( 'init', [ $this, 'clear_cache' ] );
   }
 
   public function register_menu_route()
@@ -51,6 +53,13 @@ class Api_Menu extends \WP_REST_Controller
     }
 
     return new \WP_REST_Response( $data, 200 );
+  }
+
+  public function clear_cache()
+  {
+    if( is_admin() && isset( $_POST['nav-menu-data'] ) ){
+      nuxt_api()->cache->delete( 'main_menu' );
+    }
   }
 
 }

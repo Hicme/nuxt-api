@@ -10,6 +10,9 @@ class Api_Sidebars extends \WP_REST_Controller
   {
     add_action( 'rest_api_init', [ $this, 'register_left_sidebar_route' ], 10 );
     add_action( 'rest_api_init', [ $this, 'register_footer_sidebar_route' ], 15 );
+
+    add_action( 'widgets.php', [ $this, 'clear_cache' ], 5 );
+    add_action( 'delete_widget', [ $this, 'clear_cache' ], 5 );
   }
 
   public function register_left_sidebar_route()
@@ -134,6 +137,12 @@ class Api_Sidebars extends \WP_REST_Controller
     ob_end_clean();
 
     return $the_widget;
+  }
+
+  public function clear_cache()
+  {
+    nuxt_api()->cache->delete( 'left_sidebar' );
+    nuxt_api()->cache->delete( 'footer_sidebar' );
   }
 
 }

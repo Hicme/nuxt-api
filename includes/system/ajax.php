@@ -22,6 +22,13 @@ class Ajax{
     add_action( 'wp_ajax_log_out_user', [ $this, 'log_out_user' ] );
 
     add_action( 'wp_ajax_get_user_account_info', [ $this, 'get_user_account_info' ] );
+
+    add_action( 'wp_ajax_save-widget', [ $this, 'sadqwr' ], 1 );
+  }
+
+  public function sadqwr()
+  {
+    var_dump('qwasf');
   }
 
   public function add_product_to_cart()
@@ -156,5 +163,4 @@ class Ajax{
 
     wp_send_json( [ 'response' => 'unauthorized' ], 401 );
   }
-
 }

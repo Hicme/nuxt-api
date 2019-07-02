@@ -52,6 +52,7 @@ final class StartUp
         \system\Register_Misc::init();
         \system\endpoints\Api_Menu::instance();
         \system\endpoints\Extends_Post::instance();
+        \system\endpoints\Extends_Page::instance();
         \system\endpoints\Extends_Product::instance();
         \system\endpoints\Api_Settings::instance();
         \system\endpoints\Api_Sidebars::instance();

@@ -2,24 +2,41 @@
 
 namespace system\endpoints;
 
-class Extends_Post extends \WP_REST_Controller
+class Extends_Page extends \WP_REST_Controller
 {
 
   use \system\Instance;
 
   public function __construct()
   {
-    add_action( 'rest_api_init', [ $this, 'add_extended_categories' ], 10 );
+    add_action( 'rest_api_init', [ $this, 'add_sidebar_settings' ], 10 );
   }
 
-  public function add_extended_categories()
+  public function add_sidebar_settings()
   {
-    register_rest_field( 'post',
-      'extended_categories',
+    register_rest_field( 'page',
+      'show_sidebar',
       [
-        'get_callback'    => [ $this, 'get_extended_categories' ],
+        'get_callback'    => [ $this, 'get_sidebar_settings' ],
       ]
 	  );
+  }
+
+  public function get_sidebar_settings( $object, $field_name, $request )
+  {
+    $id = $object['id'];
+
+    if ( is_wp_error( $id ) ) {
+      return $id;
+    }
+
+    $data = false;
+
+    if( !empty( $show = get_post_meta( $id, '_show_sidebar', false) ) ){
+      $data = true;
+    }
+
+    return $data;
   }
 
   public function get_extended_categories( $object, $field_name, $request )

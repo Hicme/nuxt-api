@@ -35,6 +35,8 @@ class Api_Settings extends \WP_REST_Controller
       $data['site_url'] = get_option( 'siteurl', false );
       $data['ajax_url'] = admin_url( 'admin-ajax.php' );
       $data['posts_per_page'] = get_option( 'posts_per_page', 15 );
+      $data['show_sidebar_on_archive'] = boolval( get_option( 'sidebar_settings', false ) );
+      $data['show_sidebar_on_single'] = boolval( get_option( 'single_post_sidebar', false ) );
       $data['front_page'] = get_option( 'page_on_front', false );
 
       nuxt_api()->cache->set( 'main_settings', $data );

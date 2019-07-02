@@ -5,12 +5,15 @@ namespace system;
 final class StartUp
 {
 
+    private $is_dev = true;
+
+
     use \system\Instance;
 
 
     public function __get( $key )
     {
-		if ( in_array( $key, array( 'cache', 'methods' ), true ) ) {
+		if ( in_array( $key, array( 'cache', 'developer' ), true ) ) {
 			return $this->$key();
 		}
 	}
@@ -22,6 +25,8 @@ final class StartUp
         $this->includes();
 
         do_action( 'p_loaded' );
+        
+        add_filter( 'allowed_http_origins', [ $this, 'add_allowed_origins' ] );
         
     }
 
@@ -65,6 +70,20 @@ final class StartUp
 
     }
 
+    public function add_allowed_origins( $origins ) {
+    
+        if( nuxt_api()->developer ){
+            $origins[] = 'http://localhost:3000';
+        }
+        
+        return $origins;
+    }
+
+
+    public function developer()
+    {
+        return $this->is_dev;
+    }
 
     public function cache()
     {

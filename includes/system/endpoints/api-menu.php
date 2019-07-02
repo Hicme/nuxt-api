@@ -5,6 +5,8 @@ namespace system\endpoints;
 class Api_Menu extends \WP_REST_Controller
 {
 
+  private $menu_items = [];
+
   use \system\Instance;
 
   public function __construct()
@@ -26,23 +28,12 @@ class Api_Menu extends \WP_REST_Controller
   {
 
     if( ! ( $data = nuxt_api()->cache->get( 'main_menu' ) ) ){
-      $data = [];
       
       $locations = get_nav_menu_locations();
 
-      if( isset( $locations['primary_navigation'] ) && ( $menu_items = wp_get_nav_menu_items( $locations['primary_navigation'] ) ) ){
+      if( isset( $locations['primary_navigation'] ) && ( $this->menu_items = wp_get_nav_menu_items( $locations['primary_navigation'] ) ) ){
 
-        foreach( $menu_items as $menu_item ){
-          $data[] = [
-            'ID'        => (int) $menu_item->ID,
-            'object_id' => (int) $menu_item->object_id,
-            'title'     => $menu_item->title,
-            'url'       => str_replace( get_site_url(), '', $menu_item->url ),
-            'menu_type' => $menu_item->object,
-            'target'    => $menu_item->target,
-            'classes'   => implode( ' ', $menu_item->classes ),
-          ];
-        }
+        $data = $this->get_menu();
 
         nuxt_api()->cache->set( 'main_menu', $data );
 
@@ -53,6 +44,56 @@ class Api_Menu extends \WP_REST_Controller
     }
 
     return new \WP_REST_Response( $data, 200 );
+  }
+
+  private function get_menu()
+  {
+    $menus = [];
+    
+    if( !empty( $this->menu_items ) ){
+      foreach ( $this->menu_items as $item ) {
+        if( $item->menu_item_parent == 0 ){
+          $menus[$item->ID] = [
+            'ID'        => (int) $item->ID,
+            'object_id' => (int) $item->object_id,
+            'title'     => $item->title,
+            'url'       => str_replace( get_site_url(), '', $item->url ),
+            'menu_type' => $item->object,
+            'target'    => $item->target,
+            'classes'   => implode( ' ', $item->classes ),
+            'children' => $this->get_children( $item )
+          ];
+        }
+      }
+    }
+
+    return $menus;
+  }
+
+  private function get_children( $menu_item )
+  {
+
+    $datas = [];
+
+    if( !empty( $this->menu_items ) ){
+      foreach ( $this->menu_items as $key => $item ) {
+
+        if( $item->menu_item_parent == $menu_item->ID ){
+          $datas[] = [
+            'ID'        => (int) $item->ID,
+            'object_id' => (int) $item->object_id,
+            'title'     => $item->title,
+            'url'       => str_replace( get_site_url(), '', $item->url ),
+            'menu_type' => $item->object,
+            'target'    => $item->target,
+            'classes'   => implode( ' ', $item->classes ),
+            'children' => $this->get_children( $item )
+          ];
+        }
+      }
+    }
+
+    return $datas;
   }
 
   public function clear_cache()

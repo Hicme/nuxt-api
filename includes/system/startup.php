@@ -72,18 +72,10 @@ final class StartUp
     }
 
     public function add_allowed_origins( $origins ) {
-    
-        if( nuxt_api()->developer ){
-            $origins[] = 'http://localhost:3000';
-        }
-        
+
+        $origins[] = 'http://localhost:3000';
+
         return $origins;
-    }
-
-
-    public function developer()
-    {
-        return $this->is_dev;
     }
 
     public function cache()

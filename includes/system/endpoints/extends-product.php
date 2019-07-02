@@ -33,7 +33,7 @@ class Extends_Product
 
   public function add_extended_categories()
   {
-    register_rest_field( 'post',
+    register_rest_field( 'product',
       'extended_categories',
       [
         'get_callback'    => [ $this, 'get_extended_categories' ],

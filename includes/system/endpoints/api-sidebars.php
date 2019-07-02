@@ -45,7 +45,7 @@ class Api_Sidebars extends \WP_REST_Controller
           $data[] = $this->prepare_widget_response( $wp_registered_widgets[$widget] );
         }
       }else{
-        return new \WP_Error( 'no_menus', 'No Sidebar Widgets created!', array( 'status' => 404 ) );
+        return [];
       }
 
       nuxt_api()->cache->set( 'left_sidebar', $data );
@@ -65,7 +65,7 @@ class Api_Sidebars extends \WP_REST_Controller
       $sidebars_widgets = wp_get_sidebars_widgets();
       
       if( empty( $sidebars_widgets['sidebar-footer-left'] ) && empty( $sidebars_widgets['sidebar-footer-right'] ) ){
-        return new \WP_Error( 'no_menus', 'No Footer Widgets created!', array( 'status' => 404 ) );
+        return [];
       }
 
       if( !empty( $sidebars_widgets['sidebar-footer-left'] ) ){

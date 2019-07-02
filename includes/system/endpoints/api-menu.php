@@ -47,7 +47,7 @@ class Api_Menu extends \WP_REST_Controller
         nuxt_api()->cache->set( 'main_menu', $data );
 
       }else{
-        return new \WP_Error( 'no_menus', 'No menu created!', array( 'status' => 404 ) );
+        return [];
       }
 
     }

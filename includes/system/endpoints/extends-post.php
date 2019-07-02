@@ -10,7 +10,7 @@ class Extends_Post extends \WP_REST_Controller
   public function __construct()
   {
     add_action( 'rest_api_init', [ $this, 'add_sidebar_settings' ], 10 );
-    add_action( 'rest_api_init', [ $this, 'add_extended_categories' ], 10 );
+    add_action( 'rest_api_init', [ $this, 'add_extended_categories' ], 15 );
   }
 
   public function add_sidebar_settings()

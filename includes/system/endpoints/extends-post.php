@@ -71,7 +71,8 @@ class Extends_Post extends \WP_REST_Controller
           'taxonomy'    => $term->taxonomy,
           'description' => $term->description,
           'count'       => $term->count,
-          'slug'        => str_replace( get_site_url(), '', get_term_link( $term ) )
+          'slug'        => $term->slug,
+          'link'        => str_replace( get_site_url(), '', get_term_link( $term ) )
         ];
       }
     }else{

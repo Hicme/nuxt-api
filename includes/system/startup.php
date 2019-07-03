@@ -56,6 +56,7 @@ final class StartUp
         \system\endpoints\Extends_Product::instance();
         \system\endpoints\Api_Settings::instance();
         \system\endpoints\Api_Sidebars::instance();
+        \system\endpoints\Api_product_categories::instance();
 
         if( $this->is_request( 'cron' ) ){
             new \system\Cron();

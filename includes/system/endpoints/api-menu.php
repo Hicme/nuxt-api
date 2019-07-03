@@ -53,6 +53,9 @@ class Api_Menu extends \WP_REST_Controller
     if( !empty( $this->menu_items ) ){
       foreach ( $this->menu_items as $item ) {
         if( $item->menu_item_parent == 0 ){
+
+          $children = $this->get_children( $item );
+
           $menus[$item->ID] = [
             'ID'        => (int) $item->ID,
             'object_id' => (int) $item->object_id,
@@ -61,7 +64,8 @@ class Api_Menu extends \WP_REST_Controller
             'menu_type' => $item->object,
             'target'    => $item->target,
             'classes'   => implode( ' ', $item->classes ),
-            'children' => $this->get_children( $item )
+            'submenu' => ! boolval( $children ),
+            'children' => $children,
           ];
         }
       }

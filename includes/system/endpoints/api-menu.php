@@ -49,14 +49,14 @@ class Api_Menu extends \WP_REST_Controller
   private function get_menu()
   {
     $menus = [];
-    
+
     if( !empty( $this->menu_items ) ){
       foreach ( $this->menu_items as $item ) {
         if( $item->menu_item_parent == 0 ){
 
           $children = $this->get_children( $item );
 
-          $menus[$item->ID] = [
+          $menus[$item->menu_order] = [
             'ID'        => (int) $item->ID,
             'object_id' => (int) $item->object_id,
             'title'     => $item->title,

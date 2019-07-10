@@ -12,8 +12,8 @@ class Ajax{
     add_action( 'wp_ajax_get_product_cart_content', [ $this, 'get_product_cart_content' ] );
     add_action( 'wp_ajax_nopriv_get_product_cart_content', [ $this, 'get_product_cart_content' ] );
 
-    add_action( 'wp_ajax_delete_product_to_cart', [ $this, 'delete_product_to_cart' ] );
-    add_action( 'wp_ajax_nopriv_delete_product_to_cart', [ $this, 'delete_product_to_cart' ] );
+    add_action( 'wp_ajax_delete_product_from_cart', [ $this, 'delete_product_cart' ] );
+    add_action( 'wp_ajax_nopriv_delete_product_from_cart', [ $this, 'delete_product_cart' ] );
 
     add_action( 'wp_ajax_nopriv_log_in_user', [ $this, 'log_in_user' ] );
 
@@ -75,7 +75,7 @@ class Ajax{
     wp_send_json( [ 'response' => 'sucess', 'cart_datas' => $datas ], 200 );
   }
 
-  public function delete_product_to_cart()
+  public function delete_product_cart()
   {
     if( isset( $_POST['cart_item_key'] ) ){
       WC()->cart->remove_cart_item( $_POST['cart_item_key'] );
@@ -151,7 +151,7 @@ class Ajax{
         wp_send_json( [ 'response' => 'sucess', 'user_datas' => $user ], 200 );
       }
 
-      wp_send_json( [ 'response' => 'not_fount' ], 404 );
+      wp_send_json( [ 'response' => 'not_found' ], 404 );
     }
 
     wp_send_json( [ 'response' => 'unauthorized' ], 401 );

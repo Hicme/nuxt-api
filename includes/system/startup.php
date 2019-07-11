@@ -86,7 +86,6 @@ final class StartUp
 	    header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Action, Authorization, multipart/form-data");
 	}
 
-
     public function cache()
     {
         return \system\Cache::instance();

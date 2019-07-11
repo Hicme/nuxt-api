@@ -98,10 +98,10 @@ class Ajax{
       $user = wp_signon( $user_data, false );
 
       if ( is_wp_error( $user ) ) {
-        wp_send_json( [ 'response' => 'not_allowed', 'text' => $user->get_error_message() ], 403 );
+        wp_send_json( [ 'response' => 'not_allowed', 'code' => $user->get_error_code() ], 403 );
       }
 
-      wp_send_json( [ 'response' => 'authorized', 'user_id' => $user->ID ], 200 );
+      wp_send_json( [ 'response' => 'authorized', 'user' => $user ], 200 );
 
     }
 

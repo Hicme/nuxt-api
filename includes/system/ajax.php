@@ -129,14 +129,14 @@ class Ajax{
   {
     if( ! is_user_logged_in() ){
     
-      $user_name = sanitize_text_field( $_POST['username'] );
+      $user_name = sanitize_text_field( $_POST['email'] );
       $password = sanitize_text_field( $_POST['password'] );
       $user_email = sanitize_email( $_POST['email'] );
 
       $user_id = wp_create_user( $user_name, $password, $user_email );
 
       if ( is_wp_error( $user_id ) ) {
-        $data = [ 'response' => 'error', 'text' => $user_id->get_error_code() ];
+        $data = [ 'response' => 'error', 'code' => $user_id->get_error_code(), 'text' => $user_id->get_error_message() ];
         wp_send_json( $data, 403 );
       }
       else {
@@ -161,7 +161,7 @@ class Ajax{
       }
     }
 
-    wp_send_json( [ 'response' => 'allready_authorized' ], 403 );
+    wp_send_json( [ 'response' => 'allready_authorized', 'code' => 'allready_authorized' ], 403 );
   }
 
   public function log_out_user()

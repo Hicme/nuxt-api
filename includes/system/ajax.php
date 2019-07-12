@@ -162,7 +162,20 @@ class Ajax{
   {
     if( is_user_logged_in() ){
       if( $user = get_user_by( 'ID', get_current_user_id() ) ){
-        wp_send_json( [ 'response' => 'sucess', 'user_datas' => $user ], 200 );
+        $return_user = [
+          'ID' => $user->ID,
+          'login' => $user->user_login,
+          'email' => $user->user_email,
+          'date_registerd' => $user->user_registered,
+          'status' => $user->user_status,
+          'nickname' => $user->user_nicename,
+          'dsplay_name' => $user->display_name,
+          'first_name' => get_user_meta( $user->ID, 'first_name', true),
+          'last_name' => get_user_meta( $user->ID, 'last_name', true),
+          'is_admin' => in_array( 'administrator', $user->roles ),
+        ];
+
+        wp_send_json( [ 'response' => 'sucess', 'user_datas' => $return_user ], 200 );
       }
 
       wp_send_json( [ 'response' => 'not_found' ], 404 );

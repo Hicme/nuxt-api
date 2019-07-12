@@ -84,6 +84,7 @@ final class StartUp
     {
 	    header("Access-Control-Allow-Methods: GET, PUT, POST, DELETE");
 	    header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Action, Authorization, multipart/form-data");
+	    header("Access-Control-Allow-Credentials: true");
 	}
 
     public function cache()

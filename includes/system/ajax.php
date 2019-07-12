@@ -16,6 +16,7 @@ class Ajax{
     add_action( 'wp_ajax_nopriv_delete_product_from_cart', [ $this, 'delete_product_cart' ] );
 
     add_action( 'wp_ajax_nopriv_log_in_user', [ $this, 'log_in_user' ] );
+    add_action( 'wp_ajax_log_in_user', [ $this, 'log_in_user' ] );
 
     add_action( 'wp_ajax_nopriv_register_user', [ $this, 'register_user' ] );
 
@@ -101,11 +102,24 @@ class Ajax{
         wp_send_json( [ 'response' => 'not_allowed', 'code' => $user->get_error_code() ], 403 );
       }
 
-      wp_send_json( [ 'response' => 'authorized', 'user' => $user ], 200 );
+      $return_user = [
+        'ID' => $user->ID,
+        'login' => $user->user_login,
+        'email' => $user->user_email,
+        'date_registerd' => $user->user_registered,
+        'status' => $user->user_status,
+        'nickname' => $user->user_nicename,
+        'dsplay_name' => $user->display_name,
+        'first_name' => get_user_meta( $user->ID, 'first_name', true),
+        'last_name' => get_user_meta( $user->ID, 'last_name', true),
+        'is_admin' => in_array( 'administrator', $user->roles ),
+      ];
+
+      wp_send_json( [ 'response' => 'authorized', 'user' => $return_user ], 200 );
 
     }
 
-    wp_send_json( [ 'response' => 'not_allowed' ], 403 );
+    wp_send_json( [ 'response' => 'allready_authorized' ], 403 );
   }
 
   public function register_user()

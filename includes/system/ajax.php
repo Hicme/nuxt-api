@@ -18,9 +18,11 @@ class Ajax{
     add_action( 'wp_ajax_nopriv_log_in_user', [ $this, 'log_in_user' ] );
     add_action( 'wp_ajax_log_in_user', [ $this, 'log_in_user' ] );
 
+    add_action( 'wp_ajax_register_user', [ $this, 'register_user' ] );
     add_action( 'wp_ajax_nopriv_register_user', [ $this, 'register_user' ] );
 
     add_action( 'wp_ajax_log_out_user', [ $this, 'log_out_user' ] );
+    add_action( 'wp_ajax_nopriv_log_out_user', [ $this, 'log_out_user' ] );
 
     add_action( 'wp_ajax_get_user_account_info', [ $this, 'get_user_account_info' ] );
     add_action( 'wp_ajax_nopriv_get_user_account_info', [ $this, 'get_user_account_info' ] );
@@ -134,17 +136,32 @@ class Ajax{
       $user_id = wp_create_user( $user_name, $password, $user_email );
 
       if ( is_wp_error( $user_id ) ) {
-        $data = [ 'response' => 'error', 'text' => $user_id->get_error_message() ];
+        $data = [ 'response' => 'error', 'text' => $user_id->get_error_code() ];
+        wp_send_json( $data, 403 );
       }
       else {
-        wp_set_auth_cookie( $user_id );
-        $data = [ 'response' => 'sucess', 'user_id' => $user_id, 'status' => 'authorized' ];
-      }
+        $user = get_userdata( $user_id );
 
-      wp_send_json( $data, 201 );
+        $return_user = [
+          'ID' => $user->ID,
+          'login' => $user->user_login,
+          'email' => $user->user_email,
+          'date_registerd' => $user->user_registered,
+          'status' => $user->user_status,
+          'nickname' => $user->user_nicename,
+          'dsplay_name' => $user->display_name,
+          'first_name' => get_user_meta( $user->ID, 'first_name', true),
+          'last_name' => get_user_meta( $user->ID, 'last_name', true),
+          'is_admin' => in_array( 'administrator', $user->roles ),
+        ];
+
+        wp_set_auth_cookie( $user_id );
+        $data = [ 'response' => 'sucess', 'user' => $return_user, 'status' => 'authorized' ];
+        wp_send_json( $data, 201 );
+      }
     }
 
-    wp_send_json( [ 'response' => 'not_allowed' ], 403 );
+    wp_send_json( [ 'response' => 'allready_authorized' ], 403 );
   }
 
   public function log_out_user()

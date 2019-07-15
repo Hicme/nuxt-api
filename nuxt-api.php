@@ -19,7 +19,7 @@ if ( ! defined( 'P_VERSION' ) ) {
 }
 
 if ( ! defined( 'P_PATH' ) ) {
-	define( 'P_PATH', dirname( __FILE__ ) . '/' );
+	define( 'P_PATH', dirname( __FILE__ ) . DIRECTORY_SEPARATOR );
 }
 
 if ( ! defined( 'P_URL_FOLDER' ) ) {

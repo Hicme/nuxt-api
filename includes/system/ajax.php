@@ -20,6 +20,12 @@ class Ajax{
 
     add_action( 'wp_ajax_nopriv_register_user', [ $this, 'register_user' ] );
 
+    add_action( 'wp_ajax_nopriv_reset_password', [ $this, 'reset_password' ] );
+
+    add_action( 'wp_ajax_nopriv_validate_keys', [ $this, 'validate_keys' ] );
+
+    add_action( 'wp_ajax_nopriv_try_set_password', [ $this, 'try_set_password' ] );
+
     add_action( 'wp_ajax_log_out_user', [ $this, 'log_out_user' ] );
 
     add_action( 'wp_ajax_get_user_account_info', [ $this, 'get_user_account_info' ] );
@@ -145,6 +151,62 @@ class Ajax{
     }
 
     wp_send_json( [ 'response' => 'not_allowed' ], 403 );
+  }
+
+  public function reset_password()
+  {
+    if( ! is_user_logged_in() ){
+      $user = get_user_by( 'email', sanitize_email( $_POST['email'] ) );
+
+      if( $user ){
+        $reset_key = get_password_reset_key( $user );
+        
+        send_reset_password_email( $reset_key, $user );
+
+        $data = [ 'response' => 'sucess', 'text' => __('Your password was successfully reseted. Check your email.', 'nuxtapi') ];
+        
+        wp_send_json( $data, 200 );
+      }else{
+        wp_send_json( [ 'response' => 'user_not_found', 'text' => __('Sorry, this email not found.', 'nuxtapi') ], 404 );
+      }
+    }
+
+    wp_send_json( [ 'response' => 'not_allowed' ], 403 );
+  }
+
+  public function validate_keys()
+  {
+    if( isset( $_REQUEST['key'] ) && isset( $_REQUEST['login'] ) ){
+      $status = check_password_reset_key( $_REQUEST['key'], $_REQUEST['login'] );
+
+      if( is_wp_error( $status ) ){
+        wp_send_json( [ 'response' => $status->get_error_code(), 'text' => $status->get_error_message() ], 403);
+      }
+      else {
+        wp_send_json( [ 'response' => 'sucess', 'text' => __( 'Code accepted.', 'nuxtapi' ) ], 200);
+      }
+    }
+  }
+
+  public function try_set_password()
+  {
+    if( isset( $_REQUEST['key'] ) && isset( $_REQUEST['login'] ) ){
+      $status = check_password_reset_key( $_REQUEST['key'], $_REQUEST['login'] );
+
+      if( is_wp_error( $status ) ){
+        wp_send_json( [ 'response' => $status->get_error_code(), 'text' => $status->get_error_message() ], 403);
+      }
+      else {
+        $user = get_user_by( 'login', $_REQUEST['login'] );
+        
+        if( $user ){
+          wp_set_password( $_POST['password'], $user->ID );
+          wp_send_json( [ 'response' => 'sucess', 'text' => __( 'Your password was successfully changed.', 'nuxtapi' ) ], 200);
+        }
+
+        wp_send_json( [ 'response' => 'not_found_user', 'text' => __( 'Sorry, your data not recognized.', 'nuxtapi' ) ], 403);
+      }
+    }
   }
 
   public function log_out_user()

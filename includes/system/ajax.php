@@ -42,8 +42,7 @@ class Ajax{
       $product_quantity = (int) ( ! empty( $_POST['product_quantity'] ) ? $_POST['product_quantity'] : 1 );
 
       if( WC()->cart->add_to_cart( $product_id, $product_quantity ) ){
-
-        wp_send_json( [ 'response' => 'added_to_cart', 'text' => 'Product added to cart', 'cart_hash' => WC()->cart->get_cart_hash() ], 200 );
+        wp_send_json( [ 'response' => 'added_to_cart', 'text' => __('Added', 'nuxtapi'), 'cart_hash' => WC()->cart->get_cart_hash() ], 200 );
       }
     }
 
@@ -64,6 +63,9 @@ class Ajax{
     if( ! WC()->cart->is_empty() ){
 
       $datas['cart_hash'] = WC()->cart->get_cart_hash();
+      $datas['cart_tax'] = WC()->cart->get_total_tax();
+      $datas['cart_shipping'] = WC()->cart->get_shipping_total();
+      $datas['cart_subtotal'] = WC()->cart->get_subtotal();
       $datas['cart_total'] = WC()->cart->get_total();
       $datas['cart_content_count'] = WC()->cart->get_cart_contents_count();
 

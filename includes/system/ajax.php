@@ -63,10 +63,10 @@ class Ajax{
     if( ! WC()->cart->is_empty() ){
 
       $datas['cart_hash'] = WC()->cart->get_cart_hash();
-      $datas['cart_tax'] = WC()->cart->get_total_tax();
+      $datas['cart_tax'] = WC()->cart->get_subtotal_tax();
       $datas['cart_shipping'] = WC()->cart->get_shipping_total();
       $datas['cart_subtotal'] = WC()->cart->get_subtotal();
-      $datas['cart_total'] = WC()->cart->get_total();
+      $datas['cart_total'] = WC()->cart->get_total(false);
       $datas['cart_content_count'] = WC()->cart->get_cart_contents_count();
 
       $items = WC()->cart->get_cart();
@@ -92,7 +92,7 @@ class Ajax{
     if( isset( $_POST['cart_item_key'] ) ){
       WC()->cart->remove_cart_item( $_POST['cart_item_key'] );
 
-      wp_send_json( [ 'response' => 'product_deleted' ], 200 );
+      wp_send_json( [ 'response' => 'sucess' ], 200 );
     }
 
     wp_send_json( [ 'response' => 'not_allowed' ], 403 );

@@ -6,14 +6,23 @@ class Ajax{
 
   public function __construct()
   {
-    add_action( 'wp_ajax_add_product_to_cart', [ $this, 'add_product_to_cart' ] );
-    add_action( 'wp_ajax_nopriv_add_product_to_cart', [ $this, 'add_product_to_cart' ] );
+    add_action( 'wp_ajax_AddCartProduct', [ $this, 'add_product_to_cart' ] );
+    add_action( 'wp_ajax_nopriv_AddCartProduct', [ $this, 'add_product_to_cart' ] );
 
-    add_action( 'wp_ajax_get_product_cart_content', [ $this, 'get_product_cart_content' ] );
-    add_action( 'wp_ajax_nopriv_get_product_cart_content', [ $this, 'get_product_cart_content' ] );
+    add_action( 'wp_ajax_addCoupon', [ $this, 'add_coupon' ] );
+    add_action( 'wp_ajax_nopriv_addCoupon', [ $this, 'add_coupon' ] );
 
-    add_action( 'wp_ajax_delete_product_from_cart', [ $this, 'delete_product_cart' ] );
-    add_action( 'wp_ajax_nopriv_delete_product_from_cart', [ $this, 'delete_product_cart' ] );
+    add_action( 'wp_ajax_removeCoupon', [ $this, 'remove_coupon' ] );
+    add_action( 'wp_ajax_nopriv_removeCoupon', [ $this, 'remove_coupon' ] );
+
+    add_action( 'wp_ajax_getShippingMethods', [ $this, 'get_shipping_methods' ] );
+    add_action( 'wp_ajax_nopriv_getShippingMethods', [ $this, 'get_shipping_methods' ] );
+
+    add_action( 'wp_ajax_getCartProducts', [ $this, 'get_cart_products' ] );
+    add_action( 'wp_ajax_nopriv_getCartProducts', [ $this, 'get_cart_products' ] );
+
+    add_action( 'wp_ajax_deleteCartProduct', [ $this, 'delete_cart_product' ] );
+    add_action( 'wp_ajax_nopriv_deleteCartProduct', [ $this, 'delete_cart_product' ] );
 
     add_action( 'wp_ajax_nopriv_log_in_user', [ $this, 'log_in_user' ] );
     add_action( 'wp_ajax_log_in_user', [ $this, 'log_in_user' ] );
@@ -36,66 +45,164 @@ class Ajax{
 
   public function add_product_to_cart()
   {
-    if( isset( $_POST['product_id'] ) && get_post_type( sanitize_text_field( $_POST['product_id'] ) ) == 'product' ){
+    if( isset( $_POST['id'] ) && get_post_type( sanitize_text_field( $_POST['id'] ) ) == 'product' ){
 
-      $product_id = (int) $_POST['product_id'];
-      $product_quantity = (int) ( ! empty( $_POST['product_quantity'] ) ? $_POST['product_quantity'] : 1 );
+      $product_id = (int) $_POST['id'];
+      $product_quantity = (int) ( ! empty( $_POST['quantity'] ) ? $_POST['quantity'] : 1 );
 
       if( WC()->cart->add_to_cart( $product_id, $product_quantity ) ){
-        wp_send_json( [ 'response' => 'added_to_cart', 'text' => __('Added', 'nuxtapi'), 'cart_hash' => WC()->cart->get_cart_hash() ], 200 );
+        wp_send_json_success( [ 'message' => 'Added to cart', 'data' => WC()->cart->get_cart_hash() ], 200 );
+      }else{
+        wp_send_json_error( [ 'code' => 105, 'message' => 'Can not buy this product' ], 405 );
       }
     }
 
-    wp_send_json( [ 'response' => 'not_allowed', 'text' => 'No product id' ], 403 );
+    wp_send_json_error( [ 'code' => 102, 'message' => 'No product id' ], 405 );
   }
 
-  public function get_product_cart_content()
+  public function add_coupon()
+  {
+    if( isset( $_POST['coupon'] ) ){
+      if( ! WC()->cart->is_empty() && WC()->cart->apply_coupon( sanitize_text_field( $_POST['coupon'] ) ) ){
+        WC()->cart->calculate_totals();
+        wp_send_json_success( [ 'message' => 'Added coupon' ], 200 );
+      }else{
+        wp_send_json_error( [ 'code' => 101, 'message' => 'Empty Cart or not valid coupon' ], 405 );
+      }
+    }else{
+      wp_send_json_error( [ 'code' => 103, 'message' => 'No coupon code' ], 405 );
+    }
+  }
+
+  public function remove_coupon()
+  {
+    if( isset( $_POST['coupon'] ) ){
+      if( WC()->cart->remove_coupon( sanitize_text_field( $_POST['coupon'] ) ) ){
+        WC()->cart->calculate_totals();
+        wp_send_json_success( [ 'message' => 'Coupon deleted' ], 200 );
+      }else{
+        wp_send_json_error( [ 'code' => 101, 'message' => 'Empty Cart' ], 405 );
+      }
+    }else{
+      wp_send_json_error( [ 'code' => 103, 'message' => 'No coupon code' ], 405 );
+    }
+  }
+
+  public function get_shipping_packages($value) {
+
+    // Packages array for storing 'carts'
+    $packages = array();
+    $packages[0]['contents']                = WC()->cart->cart_contents;
+    $packages[0]['contents_cost']           = $value['amount'];
+    $packages[0]['applied_coupons']         = WC()->session->applied_coupon;
+    $packages[0]['destination']['country']  = $value['country'];
+    $packages[0]['destination']['state']    = '';
+    $packages[0]['destination']['postcode'] = '';
+    $packages[0]['destination']['city']     = '';
+    $packages[0]['destination']['address']  = '';
+    $packages[0]['destination']['address_2']= '';
+
+
+    return apply_filters('woocommerce_cart_shipping_packages', $packages);
+}
+
+  public function get_shipping_methods()
+  {
+
+    $values = array ('country' => 'NL',
+                     'amount'  => 100);
+    $active_methods   = array();
+
+
+    WC()->shipping->calculate_shipping(WC()->cart->get_shipping_packages());
+    $shipping_methods = WC()->shipping->get_packages();
+
+    foreach ($shipping_methods[0]['rates'] as $id => $shipping_method) {
+      $active_methods[] = array(  'id'        => $shipping_method->method_id,
+                                  'type'      => $shipping_method->method_id,
+                                  'provider'  => $shipping_method->method_id,
+                                  'name'      => $shipping_method->label,
+                                  'price'     => number_format($shipping_method->cost, 2, '.', ''));
+  }
+  
+  echo '<pre>';
+  print_r($active_methods);
+  echo '</pre>';
+    
+    die();
+  }
+
+  public function get_cart_products()
   {
 
     $datas = [
-      'cart_hash' => '',
-      'cart_total' => 0,
-      'cart_content_count' => 0,
-      'products' => [],
+      'hash'          => '',
+      'tax'           => 0,
+      'shipping'      => 0,
+      'coupons'       => [],
+      'fees'          => [],
+      'discount'      => 0,
+      'subtotal'      => 0,
+      'total'         => 0,
+      'content_count' => 0,
+      'products'      => [],
 
     ];
 
     if( ! WC()->cart->is_empty() ){
 
-      $datas['cart_hash'] = WC()->cart->get_cart_hash();
-      $datas['cart_tax'] = WC()->cart->get_subtotal_tax();
-      $datas['cart_shipping'] = WC()->cart->get_shipping_total();
-      $datas['cart_subtotal'] = WC()->cart->get_subtotal();
-      $datas['cart_total'] = WC()->cart->get_total(false);
-      $datas['cart_content_count'] = WC()->cart->get_cart_contents_count();
+      $datas['hash']          = WC()->cart->get_cart_hash();
+      $datas['tax']           = WC()->cart->get_subtotal_tax();
+      $datas['shipping']      = WC()->cart->get_shipping_total();
+      
+      if( $coupons = WC()->cart->get_coupons() ){
+        $temp = [];
+        foreach ( $coupons as $code => $coupon ) {
+            $temp[$code] = [
+              'code' => $coupon->get_code(),
+              'amount' => $coupon->get_amount(),
+              'description' => $coupon->get_description(),
+            ];
+        }
+
+        $datas['coupons']       = $temp;
+      }else{
+        $datas['coupons']       = [];
+      }
+
+      $datas['fees']          = WC()->cart->get_fees();
+      $datas['subtotal']      = WC()->cart->get_subtotal();
+      $datas['total']         = WC()->cart->get_total(false);
+      $datas['content_count'] = WC()->cart->get_cart_contents_count();
 
       $items = WC()->cart->get_cart();
 
       foreach( $items as $item => $values ){
         $datas['products'][] = [
-          'product_id'       => $values['data']->get_id(),
-          'product_title'    => $values['data']->get_title(),
-          'product_image'    => ( !empty( $image = get_post_meta( $values['data']->get_id(), '_thumbnail_id', true ) ) ? wp_get_attachment_image_url( $image, 'full' ) : false ),
-          'product_quantity' => $values['quantity'],
-          'product_price'    => $values['data']->get_price(),
-          'cart_item_key'    => $values['key'],
+          'id'       => $values['data']->get_id(),
+          'item_key' => $values['key'],
+          'title'    => $values['data']->get_title(),
+          'slug'     => $values['data']->get_slug(),
+          'image'    => ( !empty( $image = get_post_meta( $values['data']->get_id(), '_thumbnail_id', true ) ) ? wp_get_attachment_image_url( $image, 'full' ) : false ),
+          'quantity' => $values['quantity'],
+          'price'    => $values['data']->get_price(),
         ];
       }
 
     }
 
-    wp_send_json( [ 'response' => 'sucess', 'cart_datas' => $datas ], 200 );
+    wp_send_json_success( $datas, 200 );
   }
 
-  public function delete_product_cart()
+  public function delete_cart_product()
   {
-    if( isset( $_POST['cart_item_key'] ) ){
-      WC()->cart->remove_cart_item( $_POST['cart_item_key'] );
+    if( isset( $_POST['item_key'] ) ){
+      WC()->cart->remove_cart_item( $_POST['item_key'] );
 
-      wp_send_json( [ 'response' => 'sucess' ], 200 );
+      wp_send_json_success( [ 'message' => 'Product deleted' ], 200 );
     }
 
-    wp_send_json( [ 'response' => 'not_allowed' ], 403 );
+    wp_send_json_error( [ 'code' => 104, 'message' => 'No Item Key' ], 405 );
   }
 
   public function log_in_user()

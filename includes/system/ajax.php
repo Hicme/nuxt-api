@@ -33,6 +33,12 @@ class Ajax{
     add_action( 'wp_ajax_nopriv_log_in_user', [ $this, 'log_in_user' ] );
     add_action( 'wp_ajax_log_in_user', [ $this, 'log_in_user' ] );
 
+    add_action( 'wp_ajax_nopriv_getCountries', [ $this, 'get_countries' ] );
+    add_action( 'wp_ajax_getCountries', [ $this, 'get_countries' ] );
+
+    add_action( 'wp_ajax_nopriv_getStates', [ $this, 'get_states' ] );
+    add_action( 'wp_ajax_getStates', [ $this, 'get_states' ] );
+
     add_action( 'wp_ajax_register_user', [ $this, 'register_user' ] );
     add_action( 'wp_ajax_nopriv_register_user', [ $this, 'register_user' ] );
 
@@ -102,8 +108,8 @@ class Ajax{
 
     $allowed = [
       'billing_email',
-      'first_name',
-      'last_name',
+      'billing_first_name',
+      'billing_last_name',
       'billing_phone',
       'billing_country',
       'billing_state',
@@ -120,21 +126,6 @@ class Ajax{
 
     WC()->customer->set_props( [ $name => $value ] );
 
-    // WC()->customer->set_props(
-    //   [
-    //     'email'             => isset( $_POST['email'] ) ? wp_unslash( $_POST['email'] ) : null,
-    //     'first_name'        => isset( $_POST['first_name'] ) ? wp_unslash( $_POST['first_name'] ) : null,
-    //     'last_name'         => isset( $_POST['last_name'] ) ? wp_unslash( $_POST['last_name'] ) : null,
-    //     'billing_phone'     => isset( $_POST['phone'] ) ? wp_unslash( $_POST['phone'] ) : null,
-    //     'billing_country'   => isset( $_POST['country'] ) ? wp_unslash( $_POST['country'] ) : null,
-    //     'billing_state'     => isset( $_POST['state'] ) ? wp_unslash( $_POST['state'] ) : null,
-    //     'billing_postcode'  => isset( $_POST['postcode'] ) ? wp_unslash( $_POST['postcode'] ) : null,
-    //     'billing_city'      => isset( $_POST['city'] ) ? wp_unslash( $_POST['city'] ) : null,
-    //     'billing_address_1' => isset( $_POST['address'] ) ? wp_unslash( $_POST['address'] ) : null,
-    //     'billing_address_2' => isset( $_POST['address_2'] ) ? wp_unslash( $_POST['address_2'] ) : null,
-    //   ]
-    // );
-
     WC()->customer->save();
     WC()->cart->calculate_totals();
     
@@ -144,17 +135,31 @@ class Ajax{
   public function get_checkout_user_datas()
   {
     $datas = [
-      'email'             => WC()->customer->get_billing_email(),
-      'first_name'        => WC()->customer->get_first_name(),
-      'last_name'         => WC()->customer->get_last_name(),
-      'billing_phone'     => WC()->customer->get_billing_phone(),
-      'billing_country'   => WC()->customer->get_billing_country(),
-      'billing_state'     => WC()->customer->get_billing_state(),
-      'billing_postcode'  => WC()->customer->get_billing_postcode(),
-      'billing_address_1' => WC()->customer->get_billing_address_1(),
+      'billing_email'      => WC()->customer->get_billing_email(),
+      'billing_first_name' => WC()->customer->get_billing_first_name(),
+      'billing_last_name'  => WC()->customer->get_billing_last_name(),
+      'billing_phone'      => WC()->customer->get_billing_phone(),
+      'billing_country'    => WC()->customer->get_billing_country(),
+      'billing_state'      => WC()->customer->get_billing_state(),
+      'billing_postcode'   => WC()->customer->get_billing_postcode(),
+      'billing_address_1'  => WC()->customer->get_billing_address_1(),
     ];
 
     wp_send_json_success( $datas, 200 );
+  }
+
+  public function get_countries()
+  {
+    wp_send_json_success( WC()->countries->get_countries(), 200 );
+  }
+
+  public function get_states()
+  {
+    if( isset( $_POST['code'] ) ){
+      wp_send_json_success( WC()->countries->get_states( sanitize_text_field( $_POST['code'] ) ), 200 );
+    }else{
+      wp_send_json_error( [ 'code' => 109, 'message' => 'No country code.' ], 405 );
+    }
   }
 
   public function get_shipping_packages($value) {

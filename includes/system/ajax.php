@@ -15,6 +15,12 @@ class Ajax{
     add_action( 'wp_ajax_removeCoupon', [ $this, 'remove_coupon' ] );
     add_action( 'wp_ajax_nopriv_removeCoupon', [ $this, 'remove_coupon' ] );
 
+    add_action( 'wp_ajax_userUpdateCheckoutData', [ $this, 'update_checkout_user_datas' ] );
+    add_action( 'wp_ajax_nopriv_userUpdateCheckoutData', [ $this, 'update_checkout_user_datas' ] );
+
+    add_action( 'wp_ajax_userGetCheckoutData', [ $this, 'get_checkout_user_datas' ] );
+    add_action( 'wp_ajax_nopriv_userGetCheckoutData', [ $this, 'get_checkout_user_datas' ] );
+
     add_action( 'wp_ajax_getShippingMethods', [ $this, 'get_shipping_methods' ] );
     add_action( 'wp_ajax_nopriv_getShippingMethods', [ $this, 'get_shipping_methods' ] );
 
@@ -88,6 +94,69 @@ class Ajax{
     }
   }
 
+  public function update_checkout_user_datas()
+  {
+    if ( WC()->cart->is_empty() && ! isset( $_POST['name'] ) && ! isset( $_POST['value'] ) ) {
+      wp_send_json_error( [ 'code' => 110, 'message' => 'Empty cart' ], 405 );
+    }
+
+    $allowed = [
+      'billing_email',
+      'first_name',
+      'last_name',
+      'billing_phone',
+      'billing_country',
+      'billing_state',
+      'billing_postcode',
+      'billing_address_1',
+    ];
+
+    $name = wc_clean( $_POST['name'] );
+    $value = wc_clean( $_POST['value'] );
+
+    if( ! in_array( $name, $allowed ) ){
+      wp_send_json_error( [ 'code' => 401, 'message' => 'Not allowed method' ], 405 );
+    }
+
+    WC()->customer->set_props( [ $name => $value ] );
+
+    // WC()->customer->set_props(
+    //   [
+    //     'email'             => isset( $_POST['email'] ) ? wp_unslash( $_POST['email'] ) : null,
+    //     'first_name'        => isset( $_POST['first_name'] ) ? wp_unslash( $_POST['first_name'] ) : null,
+    //     'last_name'         => isset( $_POST['last_name'] ) ? wp_unslash( $_POST['last_name'] ) : null,
+    //     'billing_phone'     => isset( $_POST['phone'] ) ? wp_unslash( $_POST['phone'] ) : null,
+    //     'billing_country'   => isset( $_POST['country'] ) ? wp_unslash( $_POST['country'] ) : null,
+    //     'billing_state'     => isset( $_POST['state'] ) ? wp_unslash( $_POST['state'] ) : null,
+    //     'billing_postcode'  => isset( $_POST['postcode'] ) ? wp_unslash( $_POST['postcode'] ) : null,
+    //     'billing_city'      => isset( $_POST['city'] ) ? wp_unslash( $_POST['city'] ) : null,
+    //     'billing_address_1' => isset( $_POST['address'] ) ? wp_unslash( $_POST['address'] ) : null,
+    //     'billing_address_2' => isset( $_POST['address_2'] ) ? wp_unslash( $_POST['address_2'] ) : null,
+    //   ]
+    // );
+
+    WC()->customer->save();
+    WC()->cart->calculate_totals();
+    
+    wp_send_json_success( [ 'message' => 'Datas updated' ], 200 );
+  }
+
+  public function get_checkout_user_datas()
+  {
+    $datas = [
+      'email'             => WC()->customer->get_billing_email(),
+      'first_name'        => WC()->customer->get_first_name(),
+      'last_name'         => WC()->customer->get_last_name(),
+      'billing_phone'     => WC()->customer->get_billing_phone(),
+      'billing_country'   => WC()->customer->get_billing_country(),
+      'billing_state'     => WC()->customer->get_billing_state(),
+      'billing_postcode'  => WC()->customer->get_billing_postcode(),
+      'billing_address_1' => WC()->customer->get_billing_address_1(),
+    ];
+
+    wp_send_json_success( $datas, 200 );
+  }
+
   public function get_shipping_packages($value) {
 
     // Packages array for storing 'carts'
@@ -104,10 +173,13 @@ class Ajax{
 
 
     return apply_filters('woocommerce_cart_shipping_packages', $packages);
-}
+  }
 
   public function get_shipping_methods()
   {
+    echo '<pre>';
+    print_r(WC()->customer);die();
+    echo '</pre>';
 
     $values = array ('country' => 'NL',
                      'amount'  => 100);
@@ -123,7 +195,7 @@ class Ajax{
                                   'provider'  => $shipping_method->method_id,
                                   'name'      => $shipping_method->label,
                                   'price'     => number_format($shipping_method->cost, 2, '.', ''));
-  }
+    }
   
   echo '<pre>';
   print_r($active_methods);
@@ -179,13 +251,15 @@ class Ajax{
 
       foreach( $items as $item => $values ){
         $datas['products'][] = [
-          'id'       => $values['data']->get_id(),
-          'item_key' => $values['key'],
-          'title'    => $values['data']->get_title(),
-          'slug'     => $values['data']->get_slug(),
-          'image'    => ( !empty( $image = get_post_meta( $values['data']->get_id(), '_thumbnail_id', true ) ) ? wp_get_attachment_image_url( $image, 'full' ) : false ),
-          'quantity' => $values['quantity'],
-          'price'    => $values['data']->get_price(),
+          'id'            => $values['data']->get_id(),
+          'item_key'      => $values['key'],
+          'title'         => $values['data']->get_title(),
+          'slug'          => $values['data']->get_slug(),
+          'image'         => ( !empty( $image = get_post_meta( $values['data']->get_id(), '_thumbnail_id', true ) ) ? wp_get_attachment_image_url( $image, 'full' ) : false ),
+          'quantity'      => $values['quantity'],
+          'price'         => $values['data']->get_price(),
+          'regular_price' => $values['data']->get_regular_price(),
+          'sale_price'    => $values['data']->get_sale_price(),
         ];
       }
 

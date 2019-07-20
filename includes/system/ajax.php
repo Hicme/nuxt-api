@@ -24,6 +24,9 @@ class Ajax{
     add_action( 'wp_ajax_getShippingMethods', [ $this, 'get_shipping_methods' ] );
     add_action( 'wp_ajax_nopriv_getShippingMethods', [ $this, 'get_shipping_methods' ] );
 
+    add_action( 'wp_ajax_getPaymentMethods', [ $this, 'get_payment_methods' ] );
+    add_action( 'wp_ajax_nopriv_getPaymentMethods', [ $this, 'get_payment_methods' ] );
+
     add_action( 'wp_ajax_getCartProducts', [ $this, 'get_cart_products' ] );
     add_action( 'wp_ajax_nopriv_getCartProducts', [ $this, 'get_cart_products' ] );
 
@@ -115,19 +118,29 @@ class Ajax{
       'billing_state',
       'billing_postcode',
       'billing_address_1',
+      'shipping_method',
+      'payment_method'
     ];
 
-    $name = wc_clean( $_POST['name'] );
-    $value = wc_clean( $_POST['value'] );
+    $name = wc_clean( wp_unslash( $_POST['name'] ) );
+    $value = wc_clean( wp_unslash( $_POST['value'] ) );
 
     if( ! in_array( $name, $allowed ) ){
       wp_send_json_error( [ 'code' => 401, 'message' => 'Not allowed method' ], 405 );
     }
 
-    WC()->customer->set_props( [ $name => $value ] );
+    if( $name == 'shipping_method' || $name == 'payment_method' ){
+      $posted_shipping_methods = ( $name == 'shipping_method' ? [$value] : [] );
+
+      WC()->session->set( 'chosen_shipping_methods', $posted_shipping_methods );
+      WC()->session->set( 'chosen_payment_method', ( $name == 'payment_method' ? $value : '' ) );
+    }else{
+      WC()->customer->set_props( [ $name => $value ] );
+    }
 
     WC()->customer->save();
-    WC()->cart->calculate_totals();
+    WC()->cart->calculate_shipping();
+		WC()->cart->calculate_totals();
     
     wp_send_json_success( [ 'message' => 'Datas updated' ], 200 );
   }
@@ -143,6 +156,8 @@ class Ajax{
       'billing_state'      => WC()->customer->get_billing_state(),
       'billing_postcode'   => WC()->customer->get_billing_postcode(),
       'billing_address_1'  => WC()->customer->get_billing_address_1(),
+      'shipping_method'    => WC()->session->get( 'chosen_shipping_methods' )[0],
+      'payment_method'     => WC()->session->get( 'chosen_payment_method' ),
     ];
 
     wp_send_json_success( $datas, 200 );
@@ -162,51 +177,50 @@ class Ajax{
     }
   }
 
-  public function get_shipping_packages($value) {
-
-    // Packages array for storing 'carts'
-    $packages = array();
-    $packages[0]['contents']                = WC()->cart->cart_contents;
-    $packages[0]['contents_cost']           = $value['amount'];
-    $packages[0]['applied_coupons']         = WC()->session->applied_coupon;
-    $packages[0]['destination']['country']  = $value['country'];
-    $packages[0]['destination']['state']    = '';
-    $packages[0]['destination']['postcode'] = '';
-    $packages[0]['destination']['city']     = '';
-    $packages[0]['destination']['address']  = '';
-    $packages[0]['destination']['address_2']= '';
-
-
-    return apply_filters('woocommerce_cart_shipping_packages', $packages);
-  }
-
   public function get_shipping_methods()
   {
-    echo '<pre>';
-    print_r(WC()->customer);die();
-    echo '</pre>';
+    $valid_methods = [];
 
-    $values = array ('country' => 'NL',
-                     'amount'  => 100);
-    $active_methods   = array();
+    WC()->shipping->calculate_shipping( WC()->cart->get_shipping_packages() );
 
-
-    WC()->shipping->calculate_shipping(WC()->cart->get_shipping_packages());
     $shipping_methods = WC()->shipping->get_packages();
 
-    foreach ($shipping_methods[0]['rates'] as $id => $shipping_method) {
-      $active_methods[] = array(  'id'        => $shipping_method->method_id,
-                                  'type'      => $shipping_method->method_id,
-                                  'provider'  => $shipping_method->method_id,
-                                  'name'      => $shipping_method->label,
-                                  'price'     => number_format($shipping_method->cost, 2, '.', ''));
+    foreach( $shipping_methods[0]['rates'] as $id => $shipping_method ){
+      $valid_methods[] = [
+        'method_id' => $shipping_method->method_id,
+        'type'      => $shipping_method->method_id,
+        'id'        => $shipping_method->id,
+        'name'      => $shipping_method->label,
+        'price'     => $shipping_method->cost,
+        'taxes'     => $shipping_method->taxes,
+      ];
     }
   
-  echo '<pre>';
-  print_r($active_methods);
-  echo '</pre>';
-    
-    die();
+    if( !empty( $valid_methods ) ){
+      wp_send_json_success( $valid_methods, 200 );
+    }else{
+      wp_send_json_error( [ 'code' => 120, 'message' => 'No shipping methods.' ], 405 );
+    }
+  }
+
+  public function get_payment_methods()
+  {
+    if( !WC()->cart->is_empty() ){
+      $data = [];
+      
+      foreach( WC()->payment_gateways->get_available_payment_gateways() as $key => $gateway ){
+        $data[] = [
+          'id'                => $gateway->id,
+          'order_button_text' => $gateway->order_button_text,
+          'title'             => $gateway->get_title(),
+          'description'       => $gateway->get_description(),
+        ];
+      }
+
+      wp_send_json_success( $data, 200 );
+    }else{
+      wp_send_json_error( [ 'code' => 110, 'message' => 'Empty cart' ], 405 );
+    }
   }
 
   public function get_cart_products()

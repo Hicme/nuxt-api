@@ -1,8 +1,8 @@
 <?php
 
-namespace system\endpoints;
+namespace system\api;
 
-class Api_Sidebars extends \WP_REST_Controller
+class Sidebars extends \WP_REST_Controller
 {
   use \system\Instance;
 
@@ -10,9 +10,9 @@ class Api_Sidebars extends \WP_REST_Controller
   {
     add_action( 'rest_api_init', [ $this, 'register_left_sidebar_route' ], 10 );
     add_action( 'rest_api_init', [ $this, 'register_footer_sidebar_route' ], 15 );
-
     add_action( 'widgets.php', [ $this, 'clear_cache' ], 5 );
     add_action( 'delete_widget', [ $this, 'clear_cache' ], 5 );
+    add_action('widgets_init', [ __CLASS__, 'register_widgets_areas' ] );
   }
 
   public function register_left_sidebar_route()
@@ -143,6 +143,31 @@ class Api_Sidebars extends \WP_REST_Controller
   {
     nuxt_api()->cache->delete( 'left_sidebar' );
     nuxt_api()->cache->delete( 'footer_sidebar' );
+  }
+
+  public static function register_widgets_areas()
+  {
+    $config = [
+      'before_widget' => '<section class="widget %1$s %2$s">',
+      'after_widget'  => '</section>',
+      'before_title'  => '<h3 class="widget__title">',
+      'after_title'   => '</h3>'
+    ];
+  
+    register_sidebar([
+        'name'          => __( 'Left Sidebar', 'nuxtapi' ),
+        'id'            => 'sidebar-left'
+    ] + $config);
+
+    register_sidebar([
+      'name'          => __( 'Footer Left Sidebar', 'nuxtapi' ),
+      'id'            => 'sidebar-footer-left'
+    ] + $config);
+
+    register_sidebar([
+      'name'          => __( 'Footer Right Sidebar', 'nuxtapi' ),
+      'id'            => 'sidebar-footer-right'
+    ] + $config);
   }
 
 }

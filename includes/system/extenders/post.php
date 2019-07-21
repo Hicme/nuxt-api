@@ -1,8 +1,8 @@
 <?php
 
-namespace system\endpoints;
+namespace system\extenders;
 
-class Extends_Post extends \WP_REST_Controller
+class Post extends \WP_REST_Controller
 {
 
   use \system\Instance;

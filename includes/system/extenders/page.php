@@ -1,8 +1,8 @@
 <?php
 
-namespace system\endpoints;
+namespace system\extenders;
 
-class Extends_Page extends \WP_REST_Controller
+class Page extends \WP_REST_Controller
 {
 
   use \system\Instance;

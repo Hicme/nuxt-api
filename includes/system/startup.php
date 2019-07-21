@@ -13,9 +13,9 @@ final class StartUp
 
     public function __get( $key )
     {
-		if ( in_array( $key, array( 'cache', 'developer' ), true ) ) {
-			return $this->$key();
-		}
+        if ( in_array( $key, array( 'cache', 'developer' ), true ) ) {
+            return $this->$key();
+        }
 	}
     
 
@@ -34,43 +34,41 @@ final class StartUp
 
     public function is_request( $type )
     {
-		switch ( $type ) {
-			case 'admin':
-				return is_admin();
-			case 'ajax':
-				return defined( 'DOING_AJAX' );
-			case 'cron':
-				return defined( 'DOING_CRON' );
-			case 'frontend':
-				return ( ! is_admin() || defined( 'DOING_AJAX' ) ) && ! defined( 'DOING_CRON' );
-		}
+        switch ( $type ) {
+            case 'admin':
+                return is_admin();
+            case 'ajax':
+                return defined( 'DOING_AJAX' );
+            case 'cron':
+                return defined( 'DOING_CRON' );
+            case 'frontend':
+                return ( ! is_admin() || defined( 'DOING_AJAX' ) ) && ! defined( 'DOING_CRON' );
+        }
     }
 
     
     private function includes()
     {
-        
-        \system\Register_Misc::init();
-        \system\endpoints\Api_Menu::instance();
-        \system\endpoints\Extends_Post::instance();
-        \system\endpoints\Extends_Page::instance();
-        \system\endpoints\Extends_Product::instance();
-        \system\endpoints\Api_Settings::instance();
-        \system\endpoints\Api_Sidebars::instance();
-        \system\endpoints\Api_product_categories::instance();
+        \system\extenders\Post::instance();
+        \system\extenders\Page::instance();
+        \system\extenders\Product::instance();
+        \system\api\Settings::instance();
+        \system\api\Menu::instance();
+        \system\api\Sidebars::instance();
 
         if( $this->is_request( 'cron' ) ){
             new \system\Cron();
         }
 
-        // if( $this->is_request( 'ajax' ) ){
-            new \system\Ajax();
-        // }
+        if( $this->is_request( 'ajax' ) ){
+            // new \system\Ajax();
+            new \system\ajax\Cart();
+            new \system\ajax\User();
+        }
 
         if( $this->is_request( 'admin' ) ){
             new \admin\Admin_Startup();
         }
-
     }
 
     public function add_allowed_origins( $origins )

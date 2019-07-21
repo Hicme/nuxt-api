@@ -1,8 +1,8 @@
 <?php
 
-namespace system\endpoints;
+namespace system\api;
 
-class Api_Settings extends \WP_REST_Controller
+class Settings extends \WP_REST_Controller
 {
 
   use \system\Instance;

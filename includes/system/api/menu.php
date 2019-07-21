@@ -1,8 +1,8 @@
 <?php
 
-namespace system\endpoints;
+namespace system\api;
 
-class Api_Menu extends \WP_REST_Controller
+class Menu extends \WP_REST_Controller
 {
 
   private $menu_items = [];
@@ -12,8 +12,8 @@ class Api_Menu extends \WP_REST_Controller
   public function __construct()
   {
     add_action( 'rest_api_init', [ $this, 'register_menu_route' ], 10 );
-
     add_action( 'init', [ $this, 'clear_cache' ] );
+    add_action('after_setup_theme', [ __CLASS__, 'register_nav_menus' ] );
   }
 
   public function register_menu_route()
@@ -105,6 +105,13 @@ class Api_Menu extends \WP_REST_Controller
     if( is_admin() && isset( $_POST['nav-menu-data'] ) ){
       nuxt_api()->cache->delete( 'main_menu' );
     }
+  }
+
+  public static function register_nav_menus()
+  {
+    register_nav_menus([
+      'primary_navigation' => __( 'Primary Navigation', 'nuxtapi' ),
+    ]);
   }
 
 }

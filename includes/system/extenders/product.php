@@ -1,8 +1,8 @@
 <?php
 
-namespace system\endpoints;
+namespace system\extenders;
 
-class Extends_Product
+class Product extends \WP_REST_Controller
 {
 
   use \system\Instance;
@@ -11,6 +11,28 @@ class Extends_Product
   {
     add_action( 'rest_api_init', [ $this, 'add_product_metas' ], 10 );
     add_action( 'rest_api_init', [ $this, 'add_extended_categories' ], 15 );
+    add_filter( 'register_taxonomy_args', [$this, 'add_taxanomies'], 10, 2 );
+  }
+
+  public function add_taxanomies( $args, $taxonomy_name )
+  {
+    if ( 'product_cat' === $taxonomy_name ) {
+      $args['show_in_rest'] = true;
+
+      // Optionally customize the rest_base or rest_controller_class
+      $args['rest_base']             = 'product_categories';
+      $args['rest_controller_class'] = 'WP_REST_Terms_Controller';
+    }
+
+    if ( 'product_tag' === $taxonomy_name ) {
+      $args['show_in_rest'] = true;
+
+      // Optionally customize the rest_base or rest_controller_class
+      $args['rest_base']             = 'product_tags';
+      $args['rest_controller_class'] = 'WP_REST_Terms_Controller';
+    }
+
+    return $args;
   }
 
   public function add_product_metas()

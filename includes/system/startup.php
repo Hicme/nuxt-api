@@ -52,9 +52,9 @@ final class StartUp
         \system\extenders\Post::instance();
         \system\extenders\Page::instance();
         \system\extenders\Product::instance();
-        \system\api\Settings::instance();
-        \system\api\Menu::instance();
-        \system\api\Sidebars::instance();
+        \system\rest\Settings::instance();
+        \system\rest\Menu::instance();
+        \system\rest\Sidebars::instance();
 
         if( $this->is_request( 'cron' ) ){
             new \system\Cron();

@@ -41,8 +41,12 @@ class Cache
     }
   }
 
-  public function set( $key, $datas )
+  public function set( $key, $datas, $expire = '' )
   {
+    if ( !empty($expire) ) {
+      $this->expire = $expire;
+    }
+
     $this->delete( $key );
 
     $file =  P_PATH . 'cache/' . 'cache.' . preg_replace( '/[^A-Z0-9\._-]/i', '', $key ) . '.' . ( time() + $this->expire );
@@ -84,6 +88,19 @@ class Cache
   public function delete( $key )
   {
     $files = glob( P_PATH . 'cache/' . 'cache.' . preg_replace( '/[^A-Z0-9\._-]/i', '', $key ) . '.*' );
+
+    if ( $files ) {
+      foreach ( $files as $file ) {
+        if ( file_exists( $file ) ) {
+          unlink( $file );
+        }
+      }
+    }
+  }
+
+  public function delete_all()
+  {
+    $files = glob( P_PATH . 'cache/' . 'cache.*' );
 
     if ( $files ) {
       foreach ( $files as $file ) {

@@ -1,6 +1,6 @@
 <?php
 
-namespace system\api;
+namespace system\rest;
 
 class Menu extends \WP_REST_Controller
 {

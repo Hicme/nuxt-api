@@ -23,7 +23,7 @@ class Settings_Pages
 
   public function set_tab_links()
   {
-    $this->tab_links[ 'console' ] = [ 'title' => __( 'Console Comands', 'wpabcf' ), 'callback' => [ '\admin\pages\Nuxt', 'render_content' ] ];
+    $this->tab_links[ 'console' ] = [ 'title' => __( 'Console Comands', 'nuxtapi' ), 'callback' => [ '\admin\pages\Nuxt', 'render_content' ] ];
 
     apply_filters( 'set_tab_links', $this->tab_links );
   }

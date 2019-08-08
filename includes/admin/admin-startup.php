@@ -198,4 +198,37 @@ class Admin_Startup
     }
     }
   }
+
+  public static function check_nuxt_url()
+  {
+    if( file_exists( ABSPATH . 'nuxtjs/package.json' ) ) {
+      $config = json_decode(file_get_contents( ABSPATH . 'nuxtjs/package.json' ), true );
+
+      if( $config['url'] !== get_site_url() ) {
+        $backup = fopen( ABSPATH . 'nuxtjs/package_backup.json', "w" );
+        fwrite( $backup, json_encode( $config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES  ) );
+        fclose( $backup );
+
+        $config['name'] = get_option( 'abcf_title', '' );
+        $config['url'] = get_site_url();
+
+        $handle = fopen( ABSPATH . 'nuxtjs/package.json', "w" );
+        fwrite( $handle, json_encode( $config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES  ) );
+        fclose( $handle );
+
+        add_action( 'admin_notices', function() {
+          ?>
+            <div class="notice notice-error">
+              <p>
+                <?php echo sprintf(
+                   __( 'Looks like you change domain name or move site. You need to <a href="%s">generate new build</a>. Otherwise nothing won\'t work correctly.', 'wpabcf' ),
+                   '/wp-admin/admin.php?page=wpabcf_settings&tab=console'
+                ); ?>
+              </p>
+            </div>
+          <?php
+        } );
+      }
+    }
+  }
 }

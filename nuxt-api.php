@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Nuxt API Extener
  * Description: Nuxt API Extener
- * Version: 0.0.1
+ * Version: 0.0.3
  * Author: Support
  * Author URI: https://prosvit.design
  * Text Domain: nuxtapi
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Define plugin constants.
 if ( ! defined( 'P_VERSION' ) ) {
-	define( 'P_VERSION', '0.0.1' );
+	define( 'P_VERSION', '0.0.3' );
 }
 
 if ( ! defined( 'P_PATH' ) ) {

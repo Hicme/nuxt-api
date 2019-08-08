@@ -1,0 +1,240 @@
+.top_tab{
+  border-bottom: 1px solid #ccc;
+  margin: 0;
+  padding-top: 9px;
+  padding-bottom: 0;
+  line-height: inherit;
+  margin: 25px 0;
+}
+
+.top_tab::after{
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.top_tab > a{
+  float: left;
+  border: 1px solid #ccc;
+  border-bottom: none;
+  margin-left: .5em;
+  padding: 5px 10px;
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 600;
+  background: #e5e5e5;
+  color: #555;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.top_tab > a:hover{
+  background: #fbfbfb;
+  color: #000;
+}
+
+.top_tab > a.active{
+  border-bottom: 1px solid #f1f1f1;
+  background: #f1f1f1;
+  color: #000;
+}
+
+.input-field-wrapper{
+  margin-bottom: 5px;
+
+}
+
+.input-field-wrapper label, .input-field-wrapper input{
+  display: block;
+  margin-bottom: 4px;
+}
+
+.wrapper_progress progress{
+  width: 100%;
+  height: 35px;
+}
+
+#sync_log{
+  padding: 20px;
+  width: auto;
+  border: 1px solid #aaa;
+  margin: 10px auto;
+}
+#sync_log legend{
+  padding: 0px 5px;
+  font-weight: bold;
+}
+#sync_log #sync_progress_log{
+  border: 1px solid #AAAAAA;
+  height: 380px;
+  overflow: auto;   
+}
+#sync_log #sync_progress_log > p {
+  margin: 0;
+  padding: 3px 5px;
+}
+#sync_log #sync_progress_log > p:nth-child(odd) {
+  background: #dfdfdf;
+}
+.delete_import{
+  display: inline-block;
+  text-decoration: none;
+  font-size: 13px;
+  line-height: 26px;
+  height: 28px;
+  margin: 0;
+  padding: 0 10px 1px;
+  cursor: pointer;
+  border-width: 1px;
+  border-style: solid;
+  -webkit-appearance: none;
+  border-radius: 3px;
+  white-space: nowrap;
+  box-sizing: border-box;
+  box-shadow: 0 1px 0 #d8392e;
+  color: #fff;
+  background: #f44336;
+  border: none;
+}
+.delete_import:hover{
+  background: #ee5348;
+}
+.sync-loading{
+  display: none;
+  margin-top: 40px;
+  text-align: center;
+  background: #fff;
+  margin: 40px;
+  padding: 15px;
+  color: black;
+  border: 3px solid #eee;
+}
+.lds-facebook {
+  display: inline-block;
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+.lds-facebook div {
+  display: inline-block;
+  position: absolute;
+  left: 6px;
+  width: 13px;
+  background: #cef;
+  animation: lds-facebook 1.2s cubic-bezier(0, 0.5, 0.5, 1) infinite;
+}
+.lds-facebook div:nth-child(1) {
+  left: 6px;
+  animation-delay: -0.24s;
+}
+.lds-facebook div:nth-child(2) {
+  left: 26px;
+  animation-delay: -0.12s;
+}
+.lds-facebook div:nth-child(3) {
+  left: 45px;
+  animation-delay: 0;
+}
+@keyframes lds-facebook {
+  0% {
+    top: 6px;
+    height: 51px;
+  }
+  50%, 100% {
+    top: 19px;
+    height: 26px;
+  }
+}
+#input_filed_search_event {
+  max-width: 190px;
+  width: 100%;
+  text-align: center;
+}
+.cancelBtn{
+  background: #e4e4e4;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.applyBtn{
+  background: #2196F3;
+  border: none;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.daterangepicker {
+  z-index: 99999;
+}
+
+.show-if-value {
+  display: none;
+}
+
+.hide-if-value {
+  display: block;
+}
+
+.has-value .show-if-value {
+  display: block;
+}
+
+.has-value .hide-if-value {
+  display: none;
+}
+
+.video_wrapper {
+  width: 150px;
+  height: 150px;
+  background: #fdfdfd;
+  border: 1px solid #ccc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.video_wrapper img {
+  display: block;
+}
+
+.console_button_wrapper {
+  padding: 15px;
+  border: 1px solid #ccc;
+  display: inline-block;
+  border-radius: 5px;
+  margin-bottom: 25px;
+}
+
+.console_responce {
+  background: #2d2d2d;
+  padding: 20px;
+  border: 3px solid #c7c7c7;
+  width: 100%;
+  max-width: 550px;
+  color: #fff;
+  font-size: 12px;
+  font-family: monospace;
+}
+.console_responce_title {
+  text-align: center;
+  max-width: 550px;
+  background: #e0e0e0;
+  color: #000;
+  padding: 20px;
+  margin-bottom: 0;
+  border: 3px solid #c7c7c7;
+  text-transform: uppercase;
+}
+
+.version_console {
+  font-size: 11px;
+  background: #8BC34A;
+  display: inline-block;
+  padding: 5px;
+  border: 1px solid #d2d2d2;
+  border-radius: 5px;
+  color: #fff;
+  margin-bottom: 15px;
+}

@@ -4,7 +4,6 @@ namespace admin\pages;
 
 class Nuxt
 {
-
   public static function exec_comands()
   {
     if( isset( $_REQUEST['_action'] ) && $_REQUEST['_action'] === 'console_commands' ){
@@ -14,7 +13,7 @@ class Nuxt
         <?php
           if( wp_verify_nonce( $_REQUEST['_nonce'], 'console_nonce') ){
             if( $_REQUEST['console_action'] === 'generate-build' ){
-              $output = shell_exec('cd ' . ABSPATH . '/nuxtjs && npm install');
+              $output = shell_exec('cd ' . ABSPATH . '/nuxtjs && npm run generate');
               echo "<pre>$output</pre>";
             }
 
@@ -40,7 +39,7 @@ class Nuxt
   public static function render_content()
   {
     add_action('console_result', [ __CLASS__, 'exec_comands' ]);
-    add_action('nuxtapi_settings_tab_content', [ __CLASS__, 'get_template' ]);
+    add_action('wpadbcf_settings_tab_content', [ __CLASS__, 'get_template' ]);
   }
 
   public static function get_template()

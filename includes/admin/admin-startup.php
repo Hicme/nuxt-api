@@ -195,7 +195,7 @@ class Admin_Startup
   {
     if ( isset( $_GET['abcf-clear-cahce'] ) ) {
     if ( wp_verify_nonce( $_GET['abc_nonce'], 'abcf_clear_cahce' ) ) {
-      wpabcf()->cache->delete_all();
+      nuxt_api()->cache->delete_all();
     }
     }
   }

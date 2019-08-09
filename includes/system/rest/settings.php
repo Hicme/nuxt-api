@@ -29,10 +29,10 @@ class Settings extends \WP_REST_Controller
     if( ! ( $data = nuxt_api()->cache->get( 'main_settings' ) ) ){
       $data = [];
       
-      $data['site_title'] = get_option( 'blogname', false );
-      $data['site_logo'] =  get_theme_mod( 'custom_logo' ) ? wp_get_attachment_image_src( get_theme_mod( 'custom_logo' ), 'full' )[0] : false;
-      $data['site_language'] = get_option( 'WPLANG', false );
-      $data['site_url'] = get_option( 'siteurl', false );
+      $data['title'] = get_option( 'blogname', false );
+      $data['logo'] =  get_theme_mod( 'custom_logo' ) ? wp_get_attachment_image_src( get_theme_mod( 'custom_logo' ), 'full' )[0] : false;
+      $data['language'] = get_option( 'WPLANG', false );
+      $data['url'] = get_option( 'siteurl', false );
       $data['ajax_url'] = admin_url( 'admin-ajax.php' );
       $data['posts_per_page'] = get_option( 'posts_per_page', 15 );
       $data['show_sidebar_on_archive'] = boolval( get_option( 'sidebar_settings', false ) );

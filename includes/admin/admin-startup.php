@@ -16,6 +16,7 @@ class Admin_Startup
     add_action( 'admin_head', [ $this, 'admin_menus_reorder' ] );
     add_action( 'admin_menu', [ $this, 'admin_menus' ], 9 );
 
+    add_action('admin_bar_menu', [ $this, 'clear_cache' ], 100);
     add_action( 'init', [ $this, 'detect_clear_cache' ] );
 
     add_action( 'p_loaded', [ __CLASS__, 'check_nuxt_url' ] );

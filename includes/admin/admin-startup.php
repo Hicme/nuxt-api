@@ -51,16 +51,16 @@ class Admin_Startup
     if( isset( $submenu['nuxtapi'] ) ){
       unset( $submenu['nuxtapi'][0] );
 
-      // $post_types = $submenu['wpabcf'][3];
-      // unset( $submenu['wpabcf'][3] );
-      // array_unshift( $submenu['wpabcf'], $post_types );
+      // $post_types = $submenu['nuxtapi'][3];
+      // unset( $submenu['nuxtapi'][3] );
+      // array_unshift( $submenu['nuxtapi'], $post_types );
     }
   }
 
   public function admin_menus()
   {
     add_menu_page( __( 'Nuxt API', 'nuxtapi' ), __( 'Nuxt API', 'nuxtapi' ), 'activate_plugins', 'nuxtapi', null, 'dashicons-book-alt', '45' );
-    add_submenu_page( 'wpabcf', __( 'Settings', 'nuxtapi' ), __( 'Settings', 'nuxtapi' ), 'activate_plugins', 'nuxtapi_settings', [ $this->settings_class, 'render_content' ] );
+    add_submenu_page( 'nuxtapi', __( 'Settings', 'nuxtapi' ), __( 'Settings', 'nuxtapi' ), 'activate_plugins', 'nuxtapi_settings', [ $this->settings_class, 'render_content' ] );
   }
 
   public function add_posts_sidebar_settings()
@@ -221,7 +221,7 @@ class Admin_Startup
             <div class="notice notice-error">
               <p>
                 <?php echo sprintf(
-                   __( 'Looks like you change domain name or move site. You need to <a href="%s">generate new build</a>. Otherwise nothing won\'t work correctly.', 'wpabcf' ),
+                   __( 'Looks like you change domain name or move site. You need to <a href="%s">generate new build</a>. Otherwise nothing won\'t work correctly.', 'nuxtapi' ),
                    '/wp-admin/admin.php?page=wpabcf_settings&tab=console'
                 ); ?>
               </p>

@@ -23,6 +23,7 @@ class Settings_Pages
 
   public function set_tab_links()
   {
+    $this->tab_links[ 'general' ] = [ 'title' => __( 'General', 'nuxtapi' ), 'callback' => [ '\admin\pages\General', 'render_content' ] ];
     $this->tab_links[ 'console' ] = [ 'title' => __( 'Console Comands', 'nuxtapi' ), 'callback' => [ '\admin\pages\Nuxt', 'render_content' ] ];
 
     apply_filters( 'set_tab_links', $this->tab_links );
@@ -34,9 +35,9 @@ class Settings_Pages
     
     foreach( $this->tab_links as $link => $tab ){
       if( $this->tab == $link ){
-        echo '<a href="admin.php?page=wpabcf_settings&tab='. $link .'" class="active">'. $tab['title'] .'</a>';
+        echo '<a href="admin.php?page=nuxtapi_settings&tab='. $link .'" class="active">'. $tab['title'] .'</a>';
       }else{
-        echo '<a href="admin.php?page=wpabcf_settings&tab='. $link .'" class="">'. $tab['title'] .'</a>';
+        echo '<a href="admin.php?page=nuxtapi_settings&tab='. $link .'" class="">'. $tab['title'] .'</a>';
       }
     }
 
@@ -45,7 +46,7 @@ class Settings_Pages
 
   public function load_tab_class()
   {
-    if( isset( $_GET['page'] ) && $_GET['page'] !== 'wpabcf_settings' ){
+    if( isset( $_GET['page'] ) && $_GET['page'] !== 'nuxtapi_settings' ){
       return;
     }
 

@@ -39,7 +39,7 @@ class Nuxt
   public static function render_content()
   {
     add_action('console_result', [ __CLASS__, 'exec_comands' ]);
-    add_action('wpadbcf_settings_tab_content', [ __CLASS__, 'get_template' ]);
+    add_action('nuxtapi_settings_tab_content', [ __CLASS__, 'get_template' ]);
   }
 
   public static function get_template()

@@ -209,7 +209,7 @@ class Admin_Startup
         fwrite( $backup, json_encode( $config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES  ) );
         fclose( $backup );
 
-        $config['name'] = get_option( 'abcf_title', '' );
+        $config['name'] = get_option( 'blogname', false );
         $config['url'] = get_site_url();
 
         $handle = fopen( ABSPATH . 'nuxtjs/package.json', "w" );
@@ -222,7 +222,7 @@ class Admin_Startup
               <p>
                 <?php echo sprintf(
                    __( 'Looks like you change domain name or move site. You need to <a href="%s">generate new build</a>. Otherwise nothing won\'t work correctly.', 'nuxtapi' ),
-                   '/wp-admin/admin.php?page=wpabcf_settings&tab=console'
+                   '/wp-admin/admin.php?page=nuxtapi_settings&tab=console'
                 ); ?>
               </p>
             </div>

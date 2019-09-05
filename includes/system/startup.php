@@ -28,6 +28,7 @@ final class StartUp
         
         add_filter( 'allowed_http_origins', [ $this, 'add_allowed_origins' ] );
         add_action('init', [$this, 'add_cors_http_header']);
+        add_filter('flush_rewrite_rules_hard','__return_false');
         
     }
 

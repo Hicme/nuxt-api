@@ -7,6 +7,44 @@ class Checkout{
   {
     add_action( 'wp_ajax_processCheckout', [ $this, 'process_checkout' ] );
     add_action( 'wp_ajax_nopriv_processCheckout', [ $this, 'process_checkout' ] );
+
+    add_action( 'wp_ajax_getOrder', [ $this, 'getOrder' ] );
+    add_action( 'wp_ajax_nopriv_getOrder', [ $this, 'getOrder' ] );
+  }
+
+  public function getOrder()
+  {
+    if ( isset( $_REQUEST['orderId'] ) && get_post_type( sanitize_text_field( $_REQUEST['orderId'] ) ) == 'shop_order' ) {
+        $order = wc_get_order( sanitize_text_field( $_REQUEST['orderId'] ) );
+
+        if ( $order->get_order_key() == $_REQUEST['orderKey'] ) {
+            $products = [];
+
+            foreach ( $order->get_items() as $item ) {
+                $products[] = [
+                    'productId' => $item->get_product_id(),
+                    'productlink' => get_permalink( $item->get_product_id() ),
+                    'title' => get_the_title( $item->get_product_id() ),
+                    'quantity' => $item->get_quantity(),
+                    'total' => $item->get_total(),
+                ];
+            }
+
+            wp_send_json_success( [
+                'orderId' => $order->get_id(),
+                'date' => wc_format_datetime( $order->get_date_created() ),
+                'status' => $order->get_status(),
+                'total' => $order->get_formatted_order_total(),
+                'paymentMethod' => $order->get_payment_method_title(),
+                'shippingMethod' => $order->get_shipping_method(),
+                'products' => $products,
+                'paymentAddress' => $order->get_formatted_billing_address(),
+                'shippingAddress' => $order->get_formatted_shipping_address(),
+            ], 200 );
+        }
+    }
+
+    wp_send_json_error( [ 'code' => 500, 'message' => 'No order found or wrong key.' ], 405 );
   }
 
   public function process_checkout() {
@@ -36,8 +74,6 @@ class Checkout{
 
         // Validate posted data and cart items before proceeding.
         $this->validate_checkout( $posted_data, $errors );
-
-        var_dump( $errors->get_error_messages());die();
 
         if( wc_notice_count( 'error' ) !== 0 ){
           wp_send_json_error( [ 'code' => 130, 'messages' => $errors->get_error_messages() ], 405 );
@@ -107,11 +143,13 @@ class Checkout{
         exit;
     }
 
-    wp_send_json(
+    wp_send_json_success(
         array(
-            'result'   => 'success',
-            'redirect' => apply_filters( 'woocommerce_checkout_no_payment_needed_redirect', $order->get_checkout_order_received_url(), $order ),
-        )
+            'result'    => 'success',
+            'order_id'  => $order->get_id(),
+            'order_key' => $order->get_order_key()
+        ),
+        200
     );
   }
 
@@ -215,7 +253,7 @@ class Checkout{
                 $country      = isset( $data[ $fieldset_key . '_country' ] ) ? $data[ $fieldset_key . '_country' ] : WC()->customer->{"get_{$fieldset_key}_country"}();
                 $data[ $key ] = wc_format_postcode( $data[ $key ], $country );
 
-                if ( $validate_fieldset && '' !== $data[ $key ] && ! WC_Validation::is_postcode( $data[ $key ], $country ) ) {
+                if ( $validate_fieldset && '' !== $data[ $key ] && ! \WC_Validation::is_postcode( $data[ $key ], $country ) ) {
                     switch ( $country ) {
                         case 'IE':
                             /* translators: %1$s: field name, %2$s finder.eircode.ie URL */
@@ -230,7 +268,7 @@ class Checkout{
             }
 
             if ( in_array( 'phone', $format, true ) ) {
-                if ( $validate_fieldset && '' !== $data[ $key ] && ! WC_Validation::is_phone( $data[ $key ] ) ) {
+                if ( $validate_fieldset && '' !== $data[ $key ] && ! \WC_Validation::is_phone( $data[ $key ] ) ) {
                     /* translators: %s: phone number */
                     $errors->add( 'validation', sprintf( __( '%s is not a valid phone number.', 'woocommerce' ), '<strong>' . esc_html( $field_label ) . '</strong>' ) );
                 }

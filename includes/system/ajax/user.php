@@ -18,11 +18,11 @@ class User{
 
     add_action( 'wp_ajax_nopriv_try_set_password', [ $this, 'try_set_password' ] );
 
-    add_action( 'wp_ajax_log_out_user', [ $this, 'log_out_user' ] );
-    add_action( 'wp_ajax_nopriv_log_out_user', [ $this, 'log_out_user' ] );
+    add_action( 'wp_ajax_logOut', [ $this, 'logOut' ] );
+    add_action( 'wp_ajax_nopriv_logOut', [ $this, 'logOut' ] );
 
-    add_action( 'wp_ajax_get_user_account_info', [ $this, 'get_user_account_info' ] );
-    add_action( 'wp_ajax_nopriv_get_user_account_info', [ $this, 'get_user_account_info' ] );
+    add_action( 'wp_ajax_getUser', [ $this, 'getUser' ] );
+    add_action( 'wp_ajax_nopriv_getUser', [ $this, 'getUser' ] );
   }
 
   public function log_in_user()
@@ -155,23 +155,23 @@ class User{
     }
   }
 
-  public function log_out_user()
+  public function logOut()
   {
     if( is_user_logged_in() ){
       wp_destroy_current_session();
       wp_clear_auth_cookie();
       
-      wp_send_json( [ 'response' => 'logged_out' ], 202 );
+      wp_send_json_success( true, 200 );
     }
 
-    wp_send_json( [ 'response' => 'unauthorized' ], 401 );
+    wp_send_json_error( [ 'code' => 600, 'message' => 'Unauthorized' ], 401 );
   }
 
-  public function get_user_account_info()
+  public function getUser()
   {
     if( is_user_logged_in() ){
       if( $user = get_user_by( 'ID', get_current_user_id() ) ){
-        $return_user = [
+        $user_data = [
           'ID' => $user->ID,
           'login' => $user->user_login,
           'email' => $user->user_email,
@@ -184,12 +184,12 @@ class User{
           'is_admin' => in_array( 'administrator', $user->roles ),
         ];
 
-        wp_send_json( [ 'response' => 'sucess', 'user_datas' => $return_user ], 200 );
+        wp_send_json_success( $user_data, 200 );
       }
 
-      wp_send_json( [ 'response' => 'not_found' ], 404 );
+      wp_send_json_error( [ 'code' => 606, 'message' => 'Not found' ], 404 );
     }
 
-    wp_send_json( [ 'response' => 'unauthorized' ], 401 );
+    wp_send_json_error( [ 'code' => 600, 'message' => 'Unauthorized' ], 401 );
   }
 }

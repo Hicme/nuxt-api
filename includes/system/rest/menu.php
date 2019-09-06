@@ -64,7 +64,7 @@ class Menu extends \WP_REST_Controller
             'menu_type' => $item->object,
             'target'    => $item->target,
             'classes'   => implode( ' ', $item->classes ),
-            'submenu' => ! boolval( $children ),
+            'submenu' => boolval( $children ),
             'children' => $children,
           ];
         }
@@ -81,8 +81,10 @@ class Menu extends \WP_REST_Controller
 
     if( !empty( $this->menu_items ) ){
       foreach ( $this->menu_items as $key => $item ) {
-
         if( $item->menu_item_parent == $menu_item->ID ){
+
+          $children = $this->get_children( $item );
+
           $datas[] = [
             'ID'        => (int) $item->ID,
             'object_id' => (int) $item->object_id,
@@ -91,7 +93,8 @@ class Menu extends \WP_REST_Controller
             'menu_type' => $item->object,
             'target'    => $item->target,
             'classes'   => implode( ' ', $item->classes ),
-            'children' => $this->get_children( $item )
+            'submenu' => boolval( $children ),
+            'children' => $children,
           ];
         }
       }

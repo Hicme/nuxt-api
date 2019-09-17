@@ -16,7 +16,7 @@ final class StartUp
         if ( in_array( $key, array( 'cache', 'developer' ), true ) ) {
             return $this->$key();
         }
-	}
+    }
     
 
     public function __construct()
@@ -29,7 +29,6 @@ final class StartUp
         add_filter( 'allowed_http_origins', [ $this, 'add_allowed_origins' ] );
         add_action('init', [$this, 'add_cors_http_header']);
         add_filter('flush_rewrite_rules_hard','__return_false');
-        
     }
 
 
@@ -62,7 +61,7 @@ final class StartUp
         }
 
         if( $this->is_request( 'ajax' ) ){
-            // new \system\Ajax();
+            new \system\Ajax();
             new \system\ajax\Cart();
             new \system\ajax\Checkout();
             new \system\ajax\User();
@@ -82,10 +81,10 @@ final class StartUp
 
     public function add_cors_http_header()
     {
-	    header("Access-Control-Allow-Methods: GET, PUT, POST, DELETE");
-	    header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Action, Authorization, multipart/form-data");
-	    header("Access-Control-Allow-Credentials: true");
-	}
+        header("Access-Control-Allow-Methods: GET, PUT, POST, DELETE");
+        header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Action, Authorization, multipart/form-data");
+        header("Access-Control-Allow-Credentials: true");
+    }
 
     public function cache()
     {

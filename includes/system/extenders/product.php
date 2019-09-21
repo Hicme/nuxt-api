@@ -202,8 +202,8 @@ class Product extends \WP_REST_Controller
           'height' => $variation->get_height(),
           'unit'   => get_option( 'woocommerce_dimension_unit' ),
         ),
-        'image'             => $this->get_images( $variation ),
-        'attributes'        => $this->get_attributes( $variation ),
+        'image'             => self::get_images( $variation ),
+        'attributes'        => self::get_attributes( $variation ),
       );
     }
 

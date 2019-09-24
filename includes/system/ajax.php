@@ -171,15 +171,26 @@ class Ajax{
 
     }
 
+    $shipping = [
+      'methods' => $this->get_shipping_methods(),
+    ];
+
+    $payment = [
+      'methods' => $this->get_payment_methods(),
+    ];
+
+    if ( $user && $this->meybe_post_request() ) {
+      $shipping['validation'] = $this->validate_shipping();
+      $payment['validation'] = $this->validate_payment();
+    }
+
     wp_send_json_success( [
       'fields' => $fieldsets,
       'user' => $usersets,
-      'shipping' => $this->get_shipping_methods(),
-      'payment' => $this->get_payment_methods()
+      'shipping' => $shipping,
+      'payment' => $payment,
     ], 200 );
   }
-
-
 
   private function get_posted_user_data()
   {
@@ -287,6 +298,43 @@ class Ajax{
     ];
 
     return $data;
+  }
+
+  private function validate_shipping()
+  {
+    if ( WC()->cart->needs_shipping() ) {
+      $shipping_country = WC()->customer->get_shipping_country();
+
+      if ( empty( $shipping_country ) ) {
+          return __( 'Please enter an address to continue.', 'woocommerce' );
+      } elseif ( ! in_array( WC()->customer->get_shipping_country(), array_keys( WC()->countries->get_shipping_countries() ), true ) ) {
+          /* translators: %s: shipping location */
+          return sprintf( __( 'Unfortunately <strong>we do not ship %s</strong>. Please enter an alternative shipping address.', 'woocommerce' ), WC()->countries->shipping_to_prefix() . ' ' . WC()->customer->get_shipping_country() );
+      } else {
+          $chosen_shipping_methods = WC()->session->get( 'chosen_shipping_methods' );
+
+          foreach ( WC()->shipping()->get_packages() as $i => $package ) {
+              if ( ! isset( $chosen_shipping_methods[ $i ], $package['rates'][ $chosen_shipping_methods[ $i ] ] ) ) {
+                  return __( 'No shipping method has been selected. Please double check your address, or contact us if you need any help.', 'woocommerce' );
+              }
+          }
+      }
+    }
+  }
+
+  private function validate_payment()
+  {
+    if ( WC()->cart->needs_payment() ) {
+      $available_gateways = WC()->payment_gateways->get_available_payment_gateways();
+
+      if ( ! isset( $available_gateways[ $data['payment_method'] ] ) ) {
+          return __( 'Invalid payment method.', 'woocommerce' );
+      } else {
+          ob_start();
+            $available_gateways[ $data['payment_method'] ]->validate_fields();
+          return ob_get_clean();
+      }
+    }
   }
 
   private function validate_field( $validate_fieldset, $key, $field, $section, $user )

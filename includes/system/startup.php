@@ -13,7 +13,7 @@ final class StartUp
 
     public function __get( $key )
     {
-        if ( in_array( $key, array( 'cache', 'developer' ), true ) ) {
+        if ( in_array( $key, array( 'cache', 'user' ), true ) ) {
             return $this->$key();
         }
     }
@@ -61,9 +61,10 @@ final class StartUp
         }
 
         if( $this->is_request( 'ajax' ) ){
-            new \system\Ajax();
+            // new \system\Ajax();
+            new \system\ajax\Newcheckout();
             new \system\ajax\Cart();
-            new \system\ajax\Checkout();
+            // new \system\ajax\Checkout();
             new \system\ajax\User();
         }
 
@@ -89,6 +90,11 @@ final class StartUp
     public function cache()
     {
         return \system\Cache::instance();
+    }
+
+    public function user()
+    {
+        return \system\User::instance();
     }
 
 }

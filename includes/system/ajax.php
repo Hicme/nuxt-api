@@ -19,48 +19,8 @@ class Ajax{
       wp_send_json_error( [ 'code' => 110, 'message' => 'Empty cart' ], 405 );
     }
 
-    WC()->session->set( 'chosen_shipping_methods', empty( $_POST['shipping_method'] ) ? '' : [$_POST['shipping_method']] );
-    WC()->session->set( 'chosen_payment_method', empty( $_POST['payment_method'] ) ? '' : $_POST['payment_method'] );
-    WC()->customer->set_props(
-      array(
-        'billing_country'   => isset( $_POST['billing_country'] ) ? wp_unslash( $_POST['billing_country'] ) : null,
-        'billing_state'     => isset( $_POST['billing_state'] ) ? wp_unslash( $_POST['billing_state'] ) : null,
-        'billing_postcode'  => isset( $_POST['billing_postcode'] ) ? wp_unslash( $_POST['billing_postcode'] ) : null,
-        'billing_city'      => isset( $_POST['billing_city'] ) ? wp_unslash( $_POST['billing_city'] ) : null,
-        'billing_address_1' => isset( $_POST['billing_address_1'] ) ? wp_unslash( $_POST['billing_address_1'] ) : null,
-        'billing_address_2' => isset( $_POST['billing_address_2'] ) ? wp_unslash( $_POST['billing_address_2'] ) : null,
-        'billing_phone' => isset( $_POST['billing_phone'] ) ? wp_unslash( $_POST['billing_phone'] ) : null,
-      )
-    );
+    $this->update_user_session();
 
-    if ( wc_ship_to_billing_address_only() ) {
-      WC()->customer->set_props(
-        array(
-          'shipping_country'   => isset( $_POST['billing_country'] ) ? wp_unslash( $_POST['billing_country'] ) : null,
-          'shipping_state'     => isset( $_POST['billing_state'] ) ? wp_unslash( $_POST['billing_state'] ) : null,
-          'shipping_postcode'  => isset( $_POST['billing_postcode'] ) ? wp_unslash( $_POST['billing_postcode'] ) : null,
-          'shipping_city'      => isset( $_POST['billing_city'] ) ? wp_unslash( $_POST['billing_city'] ) : null,
-          'shipping_address_1' => isset( $_POST['billing_address_1'] ) ? wp_unslash( $_POST['billing_address_1'] ) : null,
-          'shipping_address_2' => isset( $_POST['billing_address_2'] ) ? wp_unslash( $_POST['billing_address_2'] ) : null,
-        )
-      );
-    } else {
-      WC()->customer->set_props(
-        array(
-          'shipping_country'   => isset( $_POST['shipping_country'] ) ? wp_unslash( $_POST['shipping_country'] ) : null,
-          'shipping_state'     => isset( $_POST['shipping_state'] ) ? wp_unslash( $_POST['shipping_state'] ) : null,
-          'shipping_postcode'  => isset( $_POST['shipping_postcode'] ) ? wp_unslash( $_POST['shipping_postcode'] ) : null,
-          'shipping_city'      => isset( $_POST['shipping_city'] ) ? wp_unslash( $_POST['shipping_city'] ) : null,
-          'shipping_address_1' => isset( $_POST['shipping_address_1'] ) ? wp_unslash( $_POST['shipping_address_1'] ) : null,
-          'shipping_address_2' => isset( $_POST['shipping_address_2'] ) ? wp_unslash( $_POST['shipping_address_2'] ) : null,
-        )
-      );
-    }
-
-    WC()->customer->save();
-    WC()->cart->calculate_shipping();
-    WC()->cart->calculate_totals();
-    
     wp_send_json_success( [ 'message' => 'Datas updated' ], 200 );
   }
 
@@ -73,6 +33,9 @@ class Ajax{
     $usersets['payment_method'] = false;
 
     if ( $this->meybe_post_request() ) {
+
+      $this->update_user_session();
+
       $user = $this->get_posted_user_data();
       $usersets['ship_to_different_address'] = $user['ship_to_different_address'];
     } elseif ( is_user_logged_in() ) {
@@ -120,15 +83,17 @@ class Ajax{
           }
         } elseif( isset( $field['type'] ) && $field['type'] === 'state' ) {
           $fieldsets[$section][$key]['field_type'] = 'state';
-          $fieldsets[$section][$key]['values'] = WC()->countries->get_states( $user ? $user->get_billing_country() : WC()->countries->get_base_country() );
 
           if ( $user ) {
             if ( is_a( $user, 'WC_Customer' ) ) {
+              $fieldsets[$section][$key]['values'] = WC()->countries->get_states( $user->get_billing_country() );
               $usersets[$key] = $user->get_billing_state();
             } else {
+              $fieldsets[$section][$key]['values'] = WC()->countries->get_states( isset( $user[$key] ) ? $user[$key] : WC()->countries->get_base_country() );
               $usersets[$key] = isset( $user[$key] ) ? $user[$key] : '';
             }
           } else {
+            $fieldsets[$section][$key]['values'] = WC()->countries->get_states( WC()->countries->get_base_country() );
             $usersets[$key] = WC()->countries->get_base_state();
           }
         } elseif( isset( $field['type'] ) && $field['type'] === 'textarea' ) {
@@ -180,8 +145,15 @@ class Ajax{
     ];
 
     if ( $user && $this->meybe_post_request() ) {
-      $shipping['validation'] = $this->validate_shipping();
-      $payment['validation'] = $this->validate_payment();
+      $methods = $this->get_posted_methods();
+      $shipping['validation'] = $this->validate_shipping( $methods );
+      $payment['validation'] = $this->validate_payment( $methods );
+
+      if ( $methods ) {
+        foreach ( $methods as $key => $method ) {
+          $usersets[$key] = $method;
+        }
+      }
     }
 
     wp_send_json_success( [
@@ -196,7 +168,7 @@ class Ajax{
   {
     $skipped = [];
     $data = [
-      'ship_to_different_address' => ! empty( $_POST['ship_to_different_address'] ) && ! wc_ship_to_billing_address_only(),
+      'ship_to_different_address' => ( isset( $_POST['ship_to_different_address'] ) && $_POST['ship_to_different_address'] != 'false' ) && ! wc_ship_to_billing_address_only(),
     ];
 
     foreach ( WC()->checkout->get_checkout_fields() as $fieldset_key => $fieldset ) {
@@ -231,7 +203,7 @@ class Ajax{
     }
 
     if ( in_array( 'shipping', $skipped, true ) && ( WC()->cart->needs_shipping_address() || wc_ship_to_billing_address_only() ) ) {
-      foreach ( $this->get_checkout_fields( 'shipping' ) as $key => $field ) {
+      foreach ( WC()->checkout->get_checkout_fields( 'shipping' ) as $key => $field ) {
           $data[ $key ] = isset( $data[ 'billing_' . substr( $key, 9 ) ] ) ? $data[ 'billing_' . substr( $key, 9 ) ] : '';
       }
     }
@@ -287,20 +259,19 @@ class Ajax{
 
   private function get_posted_methods()
   {
-    if ( ! isset( $_REQUEST['posted_data'] ) ) {
+    if ( ! $this->meybe_post_request() ) {
       return false;
     }
 
     $data = [
-      'payment_method'                     => isset( $_POST['payment_method'] ) ? wc_clean( wp_unslash( $_POST['payment_method'] ) ) : '',
-      'shipping_method'                    => isset( $_POST['shipping_method'] ) ? wc_clean( wp_unslash( $_POST['shipping_method'] ) ) : '',
-      'woocommerce_checkout_update_totals' => isset( $_POST['woocommerce_checkout_update_totals'] ),
+      'payment_method' => isset( $_POST['payment_method'] ) ? wc_clean( wp_unslash( $_POST['payment_method'] ) ) : '',
+      'shipping_method' => isset( $_POST['shipping_method'] ) ? wc_clean( wp_unslash( $_POST['shipping_method'] ) ) : '',
     ];
 
     return $data;
   }
 
-  private function validate_shipping()
+  private function validate_shipping( $data )
   {
     if ( WC()->cart->needs_shipping() ) {
       $shipping_country = WC()->customer->get_shipping_country();
@@ -311,10 +282,8 @@ class Ajax{
           /* translators: %s: shipping location */
           return sprintf( __( 'Unfortunately <strong>we do not ship %s</strong>. Please enter an alternative shipping address.', 'woocommerce' ), WC()->countries->shipping_to_prefix() . ' ' . WC()->customer->get_shipping_country() );
       } else {
-          $chosen_shipping_methods = WC()->session->get( 'chosen_shipping_methods' );
-
           foreach ( WC()->shipping()->get_packages() as $i => $package ) {
-              if ( ! isset( $chosen_shipping_methods[ $i ], $package['rates'][ $chosen_shipping_methods[ $i ] ] ) ) {
+              if ( ! in_array( $data['shipping_method'], $package['rates'] ) ) {
                   return __( 'No shipping method has been selected. Please double check your address, or contact us if you need any help.', 'woocommerce' );
               }
           }
@@ -322,7 +291,7 @@ class Ajax{
     }
   }
 
-  private function validate_payment()
+  private function validate_payment( $data )
   {
     if ( WC()->cart->needs_payment() ) {
       $available_gateways = WC()->payment_gateways->get_available_payment_gateways();
@@ -407,7 +376,7 @@ class Ajax{
   }
 
 
-  protected function meybe_post_request()
+  private function meybe_post_request()
   {
     if ( ! isset( $_REQUEST['posted_data'] ) ) {
       return false;
@@ -416,13 +385,58 @@ class Ajax{
     return true;
   }
 
-  protected function maybe_skip_fieldset( $fieldset_key, $data )
+  private function maybe_skip_fieldset( $fieldset_key, $data )
   {
     if ( 'shipping' === $fieldset_key && ( ! $data['ship_to_different_address'] || ! WC()->cart->needs_shipping_address() ) ) {
         return true;
     }
 
     return false;
+  }
+
+  private function update_user_session()
+  {
+    WC()->session->set( 'chosen_shipping_methods', empty( $_POST['shipping_method'] ) ? '' : [$_POST['shipping_method']] );
+    WC()->session->set( 'chosen_payment_method', empty( $_POST['payment_method'] ) ? '' : $_POST['payment_method'] );
+    WC()->customer->set_props(
+      array(
+        'billing_country'   => isset( $_POST['billing_country'] ) ? wp_unslash( $_POST['billing_country'] ) : null,
+        'billing_state'     => isset( $_POST['billing_state'] ) ? wp_unslash( $_POST['billing_state'] ) : null,
+        'billing_postcode'  => isset( $_POST['billing_postcode'] ) ? wp_unslash( $_POST['billing_postcode'] ) : null,
+        'billing_city'      => isset( $_POST['billing_city'] ) ? wp_unslash( $_POST['billing_city'] ) : null,
+        'billing_address_1' => isset( $_POST['billing_address_1'] ) ? wp_unslash( $_POST['billing_address_1'] ) : null,
+        'billing_address_2' => isset( $_POST['billing_address_2'] ) ? wp_unslash( $_POST['billing_address_2'] ) : null,
+        'billing_phone' => isset( $_POST['billing_phone'] ) ? wp_unslash( $_POST['billing_phone'] ) : null,
+      )
+    );
+
+    if ( wc_ship_to_billing_address_only() ) {
+      WC()->customer->set_props(
+        array(
+          'shipping_country'   => isset( $_POST['billing_country'] ) ? wp_unslash( $_POST['billing_country'] ) : null,
+          'shipping_state'     => isset( $_POST['billing_state'] ) ? wp_unslash( $_POST['billing_state'] ) : null,
+          'shipping_postcode'  => isset( $_POST['billing_postcode'] ) ? wp_unslash( $_POST['billing_postcode'] ) : null,
+          'shipping_city'      => isset( $_POST['billing_city'] ) ? wp_unslash( $_POST['billing_city'] ) : null,
+          'shipping_address_1' => isset( $_POST['billing_address_1'] ) ? wp_unslash( $_POST['billing_address_1'] ) : null,
+          'shipping_address_2' => isset( $_POST['billing_address_2'] ) ? wp_unslash( $_POST['billing_address_2'] ) : null,
+        )
+      );
+    } else {
+      WC()->customer->set_props(
+        array(
+          'shipping_country'   => isset( $_POST['shipping_country'] ) ? wp_unslash( $_POST['shipping_country'] ) : null,
+          'shipping_state'     => isset( $_POST['shipping_state'] ) ? wp_unslash( $_POST['shipping_state'] ) : null,
+          'shipping_postcode'  => isset( $_POST['shipping_postcode'] ) ? wp_unslash( $_POST['shipping_postcode'] ) : null,
+          'shipping_city'      => isset( $_POST['shipping_city'] ) ? wp_unslash( $_POST['shipping_city'] ) : null,
+          'shipping_address_1' => isset( $_POST['shipping_address_1'] ) ? wp_unslash( $_POST['shipping_address_1'] ) : null,
+          'shipping_address_2' => isset( $_POST['shipping_address_2'] ) ? wp_unslash( $_POST['shipping_address_2'] ) : null,
+        )
+      );
+    }
+
+    WC()->customer->save();
+    WC()->cart->calculate_shipping();
+    WC()->cart->calculate_totals();
   }
 
 }

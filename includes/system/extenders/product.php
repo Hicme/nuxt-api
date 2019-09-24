@@ -236,8 +236,6 @@ class Product extends \WP_REST_Controller
 
       $images[] = array(
         'id'         => (int) $attachment_id,
-        'created_at' => date( "Y-m-d H:i:s", $attachment_post->post_date_gmt ),
-        'updated_at' => date( "Y-m-d H:i:s", $attachment_post->post_modified_gmt ),
         'src'        => current( $attachment ),
         'title'      => get_the_title( $attachment_id ),
         'alt'        => get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ),

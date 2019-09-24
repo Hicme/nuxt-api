@@ -61,10 +61,9 @@ final class StartUp
         }
 
         if( $this->is_request( 'ajax' ) ){
-            // new \system\Ajax();
-            new \system\ajax\Newcheckout();
+            new \system\Ajax();
             new \system\ajax\Cart();
-            // new \system\ajax\Checkout();
+            new \system\ajax\Checkout();
             new \system\ajax\User();
         }
 

@@ -6,6 +6,31 @@ class User
 {
   use \system\Instance;
 
+  public function get_datas( $user_id = false )
+  {
+    if ( $user_id === false ) {
+      $user_id = get_current_user_id();
+    }
+
+    if ( $user = get_userdata( $user_id ) ) {
+
+      return [
+        'ID'             => $user->ID,
+        'login'          => $user->user_login,
+        'email'          => $user->user_email,
+        'date_registerd' => $user->user_registered,
+        'status'         => $user->user_status,
+        'nickname'       => $user->user_nicename,
+        'dsplay_name'    => $user->display_name,
+        'first_name'     => get_user_meta( $user->ID, 'first_name', true),
+        'last_name'      => get_user_meta( $user->ID, 'last_name', true),
+        'is_admin'       => in_array( 'administrator', $user->roles ),
+      ];
+    }
+
+    return false;
+  }
+
   public function save_session()
   {
     WC()->session->set( 'chosen_shipping_methods', empty( $_POST['shipping_method'] ) ? '' : [$_POST['shipping_method']] );
@@ -26,7 +51,7 @@ class User
       )
     );
 
-    if ( wc_ship_to_billing_address_only() ) {
+    if ( wc_ship_to_billing_address_only() || ( isset( $_POST['ship_to_different_address'] ) && $_POST['ship_to_different_address'] == 'false' ) ) {
       WC()->customer->set_props(
         array(
           'shipping_country'   => isset( $_POST['billing_country'] ) ? wp_unslash( $_POST['billing_country'] ) : null,
@@ -51,5 +76,7 @@ class User
     }
 
     WC()->customer->save();
+    WC()->cart->calculate_shipping();
+    WC()->cart->calculate_totals();
   }
 }

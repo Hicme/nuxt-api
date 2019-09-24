@@ -169,5 +169,4 @@ class Sidebars extends \WP_REST_Controller
       'id'            => 'sidebar-footer-right'
     ] + $config);
   }
-
 }

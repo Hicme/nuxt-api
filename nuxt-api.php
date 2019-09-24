@@ -10,24 +10,24 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly.
+  exit; // Exit if accessed directly.
 }
 
 // Define plugin constants.
 if ( ! defined( 'P_VERSION' ) ) {
-	define( 'P_VERSION', '0.4.0' );
+  define( 'P_VERSION', '0.4.0' );
 }
 
 if ( ! defined( 'P_PATH' ) ) {
-	define( 'P_PATH', dirname( __FILE__ ) . DIRECTORY_SEPARATOR );
+  define( 'P_PATH', dirname( __FILE__ ) . DIRECTORY_SEPARATOR );
 }
 
 if ( ! defined( 'P_URL_FOLDER' ) ) {
-	define( 'P_URL_FOLDER', plugin_dir_url( __FILE__ ) );
+  define( 'P_URL_FOLDER', plugin_dir_url( __FILE__ ) );
 }
 
 if( ! defined( 'REST_NAMESPASE' ) ) {
-	define( 'REST_NAMESPASE', 'nuxt/v1' );
+  define( 'REST_NAMESPASE', 'nuxt/v1' );
 }
 
 register_activation_hook( __FILE__, 'p_activate' );
@@ -46,5 +46,5 @@ function p_activate()
 
 function p_deactivate()
 {
-    
+
 }

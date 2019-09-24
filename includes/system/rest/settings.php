@@ -59,5 +59,4 @@ class Settings extends \WP_REST_Controller
   {
     nuxt_api()->cache->delete( 'main_settings' );
   }
-
 }

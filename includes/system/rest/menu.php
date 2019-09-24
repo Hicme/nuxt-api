@@ -116,5 +116,4 @@ class Menu extends \WP_REST_Controller
       'primary_navigation' => __( 'Primary Navigation', 'nuxtapi' ),
     ]);
   }
-
 }

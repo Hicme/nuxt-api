@@ -30,7 +30,7 @@ class User{
   public function getUser()
   {
     if( is_user_logged_in() ){
-      if( $user = nuxt_api()->user->get_datas() ){
+      if( $user = $this->get_datas() ){
         wp_send_json_success( $user, 200 );
       }
 
@@ -55,7 +55,7 @@ class User{
         wp_send_json_error( [ 'code' => 601, 'message' => $user->get_error_code() ], 405 );
       }
 
-      wp_send_json_success( nuxt_api()->user->get_datas(), 200 );
+      wp_send_json_success( $this->get_datas(), 200 );
     }
 
     wp_send_json_error( [ 'code' => 600, 'message' => 'Allready authorized' ], 405 );
@@ -91,7 +91,7 @@ class User{
         wp_send_json_error( [ 'code' => 651, 'message' => $user_id->get_error_message() ], 405 );
       } else {
         wp_set_auth_cookie( $user_id );
-        wp_send_json_success( nuxt_api()->user->get_datas( $user_id ), 200 );
+        wp_send_json_success( $this->get_datas( $user_id ), 200 );
       }
     }
 
@@ -153,5 +153,32 @@ class User{
         wp_send_json_error( [ 'code' => 650, 'message' => __( 'Sorry, your data not recognized.', 'nuxtapi' ), 'class' => 'alert-danger' ], 403 );
       }
     }
+  }
+
+
+
+  public function get_datas( $user_id = false )
+  {
+    if ( $user_id === false ) {
+      $user_id = get_current_user_id();
+    }
+
+    if ( $user = get_userdata( $user_id ) ) {
+
+      return [
+        'ID'             => $user->ID,
+        'login'          => $user->user_login,
+        'email'          => $user->user_email,
+        'date_registerd' => $user->user_registered,
+        'status'         => $user->user_status,
+        'nickname'       => $user->user_nicename,
+        'dsplay_name'    => $user->display_name,
+        'first_name'     => get_user_meta( $user->ID, 'first_name', true),
+        'last_name'      => get_user_meta( $user->ID, 'last_name', true),
+        'is_admin'       => in_array( 'administrator', $user->roles ),
+      ];
+    }
+
+    return false;
   }
 }

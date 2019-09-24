@@ -4,9 +4,9 @@ namespace system;
 
 class Cron
 {
-    
-    public function __construct()
-    {
-    }
+
+  public function __construct()
+  {
+  }
 
 }

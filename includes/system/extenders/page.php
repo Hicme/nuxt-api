@@ -71,5 +71,4 @@ class Page extends \WP_REST_Controller
     return $datas;
 
   }
-
 }

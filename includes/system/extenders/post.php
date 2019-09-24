@@ -101,5 +101,4 @@ class Post extends \WP_REST_Controller
 
     return false;
   }
-
 }

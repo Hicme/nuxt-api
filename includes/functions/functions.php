@@ -75,10 +75,3 @@ if( ! function_exists( 'send_reset_password_email' ) ){
     return wp_mail( $user->user_email, $subject, $html, $headers, $attachments );
   }
 }
-
-if( ! function_exists( 'get_nuxt_permalink' ) ){
-  function get_nuxt_permalink()
-  {
-    
-  }
-}

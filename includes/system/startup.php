@@ -9,7 +9,7 @@ final class StartUp
 
   public function __get( $key )
   {
-    if ( in_array( $key, array( 'cache' ), true ) ) {
+    if ( in_array( $key, array( 'cache', 'get_cart' ), true ) ) {
       return $this->$key();
     }
   }
@@ -85,5 +85,10 @@ final class StartUp
   public function cache()
   {
     return \system\Cache::instance();
+  }
+
+  public function get_cart()
+  {
+    return \system\ajax\Cart::get_cart();
   }
 }

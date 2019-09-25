@@ -29,20 +29,20 @@ class Cart{
 
   public function getCartProducts()
   {
-    wp_send_json_success( $this->get_cart(), 200 );
+    wp_send_json_success( self::get_cart(), 200 );
   }
 
   public function addCartProduct()
   {
-    if( isset( $_POST['id'] ) && get_post_type( sanitize_text_field( $_POST['id'] ) ) == 'product' ){
+    if( isset( $_REQUEST['id'] ) && get_post_type( sanitize_text_field( $_REQUEST['id'] ) ) == 'product' ){
 
-      $product_id = (int) $_POST['id'];
-      $product_quantity = (int) ( ! empty( $_POST['quantity'] ) ? $_POST['quantity'] : 1 );
+      $product_id = (int) $_REQUEST['id'];
+      $product_quantity = (int) ( ! empty( $_REQUEST['quantity'] ) ? $_REQUEST['quantity'] : 1 );
 
       if( WC()->cart->add_to_cart( $product_id, $product_quantity ) ){
         wp_send_json_success([
           'message' => 'Added to cart',
-          'data' => $this->get_cart(),
+          'data' => self::get_cart(),
         ], 200);
       }else{
         wp_send_json_error( [ 'code' => 105, 'message' => 'Can not buy this product' ], 405 );
@@ -54,12 +54,12 @@ class Cart{
 
   public function deleteCartProduct()
   {
-    if( isset( $_POST['item_key'] ) ){
+    if( isset( $_REQUEST['item_key'] ) ){
       WC()->cart->remove_cart_item( $_POST['item_key'] );
 
       wp_send_json_success([
         'message' => 'Product deleted',
-        'data' => $this->get_cart(),
+        'data' => self::get_cart(),
       ], 200);
     }
 
@@ -68,12 +68,12 @@ class Cart{
 
   public function addCoupon()
   {
-    if( isset( $_POST['coupon'] ) ){
-      if( ! WC()->cart->is_empty() && WC()->cart->apply_coupon( sanitize_text_field( $_POST['coupon'] ) ) ){
+    if( isset( $_REQUEST['coupon'] ) ){
+      if( ! WC()->cart->is_empty() && WC()->cart->apply_coupon( sanitize_text_field( $_REQUEST['coupon'] ) ) ){
         WC()->cart->calculate_totals();
         wp_send_json_success([
           'message' => 'Added coupon',
-          'data' => $this->get_cart(),
+          'data' => self::get_cart(),
         ], 200);
       }else{
         wp_send_json_error( [ 'code' => 101, 'message' => 'Empty Cart or not valid coupon' ], 405 );
@@ -85,12 +85,12 @@ class Cart{
 
   public function removeCoupon()
   {
-    if( isset( $_POST['coupon'] ) ){
-      if( WC()->cart->remove_coupon( sanitize_text_field( $_POST['coupon'] ) ) ){
+    if( isset( $_REQUEST['coupon'] ) ){
+      if( WC()->cart->remove_coupon( sanitize_text_field( $_REQUEST['coupon'] ) ) ){
         WC()->cart->calculate_totals();
         wp_send_json_success([
           'message' => 'Coupon deleted',
-          'data' => $this->get_cart(),
+          'data' => self::get_cart(),
         ], 200);
       }else{
         wp_send_json_error( [ 'code' => 101, 'message' => 'Empty Cart' ], 405 );
@@ -102,8 +102,8 @@ class Cart{
 
   public function getStates()
   {
-    if( isset( $_POST['code'] ) ){
-      wp_send_json_success( WC()->countries->get_states( sanitize_text_field( $_POST['code'] ) ), 200 );
+    if( isset( $_REQUEST['code'] ) ){
+      wp_send_json_success( WC()->countries->get_states( sanitize_text_field( $_REQUEST['code'] ) ), 200 );
     }else{
       wp_send_json_error( [ 'code' => 109, 'message' => 'No country code.' ], 405 );
     }
@@ -111,7 +111,7 @@ class Cart{
 
 
 
-  private function get_cart()
+  public static function get_cart()
   {
     $datas = [
       'hash'          => '',

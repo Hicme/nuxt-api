@@ -37,9 +37,11 @@ class Checkout{
     $payment_methods  = [];
     $checkout_fields  = [];
     $validation       = [];
+    $cart_content     = false;
 
     if ( $this->maybe_recived_user() ) {
       $this->save_user_session();
+      $cart_content = nuxt_api()->get_cart;
     } else {
       $user_datas = $this->get_user_datas();
     }
@@ -54,7 +56,8 @@ class Checkout{
       'validation'       => $validation,
       'user_datas'       => $user_datas,
       'shipping_methods' => $shipping_methods,
-      'payment_methods'  => $payment_methods
+      'payment_methods'  => $payment_methods,
+      'cart_content'     => $cart_content
     ], 200 );
   }
 
@@ -73,14 +76,14 @@ class Checkout{
       do_action( 'woocommerce_checkout_process' );
 
       $this->save_user_session();
-      $posted_data = $this->get_user_datas();
+      $posted_data = $this->get_post_data();
       $validation  = $this->validate_fields();
 
       if( ! empty( $validation ) ){
         wp_send_json_error( [ 'code' => 130, 'validation' => $validation ], 405 );
       }
 
-      if ( empty( $posted_data['woocommerce_checkout_update_totals'] ) && 0 === wc_notice_count( 'error' ) ) {
+      if ( 0 === wc_notice_count( 'error' ) ) {
           // $this->process_customer( $posted_data );
           $order_id = WC()->checkout->create_order( $posted_data );
           $order    = wc_get_order( $order_id );
@@ -100,6 +103,8 @@ class Checkout{
           } else {
               $this->process_order_without_payment( $order_id );
           }
+      } else {
+        wp_send_json_error( [ 'code' => 137, 'message' => 'wc_notice_count' ], 405 );
       }
     } catch ( Exception $e ) {
         wp_send_json_error( [ 'code' => 400, 'message' => $e->getMessage() ], 405 );
@@ -487,10 +492,10 @@ class Checkout{
       } elseif ( ! in_array( WC()->customer->get_shipping_country(), array_keys( WC()->countries->get_shipping_countries() ), true ) ) {
         $validations['shipping_method'] = sprintf( __( 'Unfortunately <strong>we do not ship %s</strong>. Please enter an alternative shipping address.', 'woocommerce' ), WC()->countries->shipping_to_prefix() . ' ' . WC()->customer->get_shipping_country() );
       } else {
-        $chosen_shipping_methods = WC()->session->get( 'chosen_shipping_methods' );
+        $chosen_shipping_methods = $data['shipping_method'];
 
         foreach ( WC()->shipping()->get_packages() as $i => $package ) {
-          if ( ! isset( $chosen_shipping_methods[ $i ], $package['rates'][ $chosen_shipping_methods[ $i ] ] ) ) {
+          if ( ! isset( $package['rates'][ $chosen_shipping_methods ] ) ) {
             $validations['shipping_method'] = __( 'No shipping method has been selected. Please double check your address, or contact us if you need any help.', 'woocommerce' );
           }
         }
@@ -506,7 +511,10 @@ class Checkout{
         ob_start();
           $available_gateways[ $data['payment_method'] ]->validate_fields();
         $content = ob_get_clean();
-        $validations['payment_method'] = $content;
+
+        if ( ! empty( $content ) ) {
+          $validations['payment_method'] = $content;
+        }
       }
     }
 
@@ -515,6 +523,7 @@ class Checkout{
 
   private function process_order_payment( $order_id, $payment_method ) {
     $available_gateways = WC()->payment_gateways->get_available_payment_gateways();
+    $order = wc_get_order( $order_id );
 
     if ( ! isset( $available_gateways[ $payment_method ] ) ) {
       wp_send_json_error( [ 'code' => 140, 'message' => __( 'Wrong Payment Method.', 'woocommerce' ) ], 405 );
@@ -525,14 +534,11 @@ class Checkout{
     $result = $available_gateways[ $payment_method ]->process_payment( $order_id );
 
     if ( isset( $result['result'] ) && 'success' === $result['result'] ) {
-        $result = apply_filters( 'woocommerce_payment_successful_result', $result, $order_id );
-
-        if ( ! is_ajax() ) {
-            wp_redirect( $result['redirect'] );
-            exit;
-        }
-
-        wp_send_json_success( $result, 200 );
+        wp_send_json_success([
+          'result'    => 'success',
+          'order_id'  => $order_id,
+          'order_key' => $order->get_order_key(),
+        ], 200 );
     }
   }
 

@@ -41,7 +41,7 @@ class Checkout{
 
     if ( $this->maybe_recived_user() ) {
       $this->save_user_session();
-      $cart_content = nuxt_api()->get_cart;
+      $cart_content = nuxt_api()->getCart;
     } else {
       $user_datas = $this->get_user_datas();
     }

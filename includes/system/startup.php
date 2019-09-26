@@ -9,7 +9,7 @@ final class StartUp
 
   public function __get( $key )
   {
-    if ( in_array( $key, array( 'cache', 'get_cart' ), true ) ) {
+    if ( in_array( $key, array( 'cache', 'getCart', 'prepareJsonPost' ), true ) ) {
       return $this->$key();
     }
   }
@@ -87,8 +87,13 @@ final class StartUp
     return \system\Cache::instance();
   }
 
-  public function get_cart()
+  public function getCart()
   {
     return \system\ajax\Cart::get_cart();
+  }
+
+  public function prepareJsonPost( $post )
+  {
+    return \system\Post_Response::response( $post );
   }
 }

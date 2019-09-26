@@ -8,7 +8,12 @@ class Ajax{
   {
     add_action( 'wp_ajax_getSearchResults', [ $this, 'initSearch' ] );
     add_action( 'wp_ajax_nopriv_getSearchResults', [ $this, 'initSearch' ] );
+
+    add_action( 'wp_ajax_loadPreview', [ $this, 'loadPreview' ] );
+    add_action( 'wp_ajax_nopriv_loadPreview', [ $this, 'loadPreview' ] );
   }
+
+
 
   public function initSearch()
   {
@@ -19,8 +24,12 @@ class Ajax{
       $search_reg     = '';
       $search_phrase  = esc_sql( $_REQUEST['search'] );
       $search_array   = str_word_count( $search_phrase, 1 );
-      $search_array[] = $search_phrase;
-      $count          = count ( $search_array );
+      $count          = count($search_array);
+
+      if ($count > 1) {
+        $search_array[] = $search_phrase;
+      }
+
 
       foreach ( $search_array as $key => $word ) {
         if ( $key + 1 < $count ) {
@@ -36,11 +45,18 @@ class Ajax{
         foreach ( $results as $result ) {
           $return[] = [
             'ID'          => $result->ID,
-            'title'       => $this->highlight_text( $search_array, $result->post_title ),
-            'description' => $this->cut_highlight_text( $search_array, $result->post_content ),
-            'link'        => get_permalink( $result->ID )
+            'title'       => highlight_text( $search_array, $result->post_title ),
+            'description' => cut_highlight_text( $search_array, $result->post_content ),
+            'link'        => str_replace(get_site_url(), '', get_permalink($result->ID))
           ];
         }
+      } else {
+        $return[] = [
+          'ID'          => 0,
+          'title'       => __( 'Nothing found.', 'nuxtapi' ),
+          'description' => '',
+          'link'        => false
+        ];
       }
 
       wp_send_json_success( $return, 200 );
@@ -49,65 +65,29 @@ class Ajax{
     wp_send_json_error( [ 'message' => __( 'No search value.', 'nuxtapi' ) ], 405 );
   }
 
-  private function highlight_text( array $search_arr, string $text )
+  public function loadPreview()
   {
-    $start = '<span class="highlight_search">';
-    $end = '</span>';
+    if (
+      isset($_REQUEST['id']) 
+      // && current_user_can('administrator')
+    ) {
+      $revisions = wp_get_post_revisions( intval($_REQUEST['id']) );
 
-    foreach ( $search_arr as $key => $word ) {
-      if ( 1 === preg_match( "/($word)/iu", $text ) ) {
-        $text = preg_replace(
-          "/($word)/iu",
-          $start . '\\1' . $end,
-          $text
-        );
-      }
-    }
+      $last_revision = false;
 
-    return $text;
-  }
-
-  private function cut_highlight_text( array $search_arr, string $text, int $size = 2 )
-  {
-    $results    = [];
-    $search_pos = [];
-    $text       = wp_strip_all_tags( $text );
-    $text_array = str_word_count( $text, 1 );
-
-    foreach ( $search_arr as $key => $word ) {
-      if ( $pos = array_search( $word, $text_array ) ) {
-        $search_pos[] = $pos;
-      }
-    }
-
-    foreach ( $search_pos as $pos ) {
-      $string     = '';
-      if ( $pos < $size ) {
-        $string .= $text_array[$pos] . ' ';
-      } else {
-        $string .= '...';
-        for ( $i = $pos - $size; $i < $pos; $i++ ) {
-          $string .= $text_array[$i] . ' ';
+      foreach ($revisions as $revision) {
+        if (false !== strpos($revision->post_name, "{$revision->post_parent}-revision")) {
+          $last_revision = $revision;
+          break;
         }
       }
 
-      if ( ( $pos + $size ) > count( $text_array ) ) {
-        $string .= '...';
-      } else {
-        for ( $i = $pos; $i <= $pos + $size; $i++ ) { 
-          $string .= $text_array[$i] . ' ';
-        }
+      if ($last_revision) {
+        wp_send_json_success( nuxt_api()->prepareJsonPost( $last_revision ) , 200);
       }
-
-      $string .= '...';
-
-      $results[] = $string;
     }
 
-    foreach ( $results as $key => $result ) {
-      $results[$key] = $this->highlight_text( $search_arr, $result );
-    }
-
-    return $results;
+    wp_send_json_error(['message' => __('Nothing to show.', 'nuxtapi')], 405);
   }
+
 }

@@ -75,3 +75,69 @@ if( ! function_exists( 'send_reset_password_email' ) ){
     return wp_mail( $user->user_email, $subject, $html, $headers, $attachments );
   }
 }
+
+if (!function_exists('highlight_text')) {
+  function highlight_text( array $search_arr, string $text )
+  {
+    $start = '<span class="highlight_search">';
+    $end = '</span>';
+
+    foreach ( $search_arr as $key => $word ) {
+      if ( 1 === preg_match( "/($word)/iu", $text ) ) {
+        $text = preg_replace(
+          "/($word)/iu",
+          $start . '\\1' . $end,
+          $text
+        );
+      }
+    }
+
+    return $text;
+  }
+}
+
+if (!function_exists('cut_highlight_text')) {
+  function cut_highlight_text( array $search_arr, string $text, int $size = 2 )
+  {
+    $results    = [];
+    $search_pos = [];
+    $text       = wp_strip_all_tags( $text );
+    $text_array = str_word_count( $text, 1 );
+
+    foreach ( $search_arr as $key => $word ) {
+      if ( $pos = array_search( $word, $text_array ) ) {
+        $search_pos[] = $pos;
+      }
+    }
+
+    foreach ( $search_pos as $pos ) {
+      $string     = '';
+      if ( $pos < $size ) {
+        $string .= $text_array[$pos] . ' ';
+      } else {
+        $string .= '...';
+        for ( $i = $pos - $size; $i < $pos; $i++ ) {
+          $string .= $text_array[$i] . ' ';
+        }
+      }
+
+      if ( ( $pos + $size ) > count( $text_array ) ) {
+        $string .= '...';
+      } else {
+        for ( $i = $pos; $i <= $pos + $size; $i++ ) { 
+          $string .= $text_array[$i] . ' ';
+        }
+      }
+
+      $string .= '...';
+
+      $results[] = $string;
+    }
+
+    foreach ( $results as $key => $result ) {
+      $results[$key] = highlight_text( $search_arr, $result );
+    }
+
+    return $results;
+  }
+}

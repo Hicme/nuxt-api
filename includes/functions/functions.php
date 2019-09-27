@@ -89,6 +89,10 @@ if (!function_exists('highlight_text')) {
           $start . '\\1' . $end,
           $text
         );
+
+        if ($key === 0) {
+          break;
+        }
       }
     }
 

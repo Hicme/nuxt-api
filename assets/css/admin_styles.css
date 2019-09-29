@@ -327,6 +327,8 @@
 .quickyLog__wrapper.opened .quickyLog__body .quickyLog__body_scroll {
   height: 390px;
   overflow-y: scroll;
+  white-space: pre-line;
+  padding: 0 10px;
 }
 
 .animate-flash{

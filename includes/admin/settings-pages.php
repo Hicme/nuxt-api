@@ -24,7 +24,7 @@ class Settings_Pages
   public function set_tab_links()
   {
     $this->tab_links[ 'general' ] = [ 'title' => __( 'General', 'nuxtapi' ), 'callback' => [ '\admin\pages\General', 'render_content' ] ];
-    $this->tab_links[ 'console' ] = [ 'title' => __( 'Console Comands', 'nuxtapi' ), 'callback' => [ '\admin\pages\Nuxt', 'render_content' ] ];
+    $this->tab_links[ 'console' ] = [ 'title' => __( 'Console Comands', 'nuxtapi' ), 'callback' => [ '\admin\pages\Console', 'render_content' ] ];
 
     apply_filters( 'set_tab_links', $this->tab_links );
   }

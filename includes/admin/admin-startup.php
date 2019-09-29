@@ -9,17 +9,19 @@ class Admin_Startup
   {
     add_action( 'init', [ $this, 'admin_inits' ] );
 
-    add_action('admin_init', [ $this, 'add_posts_sidebar_settings' ] );
-    add_action('add_meta_boxes', [ $this, 'add_sidebar_settings' ] );
+    add_action( 'admin_init', [ $this, 'add_posts_sidebar_settings' ] );
+    add_action( 'add_meta_boxes', [ $this, 'add_sidebar_settings' ] );
     add_action( 'save_post', [ $this, 'save_sidebar_settings' ] );
 
     add_action( 'admin_head', [ $this, 'admin_menus_reorder' ] );
     add_action( 'admin_menu', [ $this, 'admin_menus' ], 9 );
 
-    add_action('admin_bar_menu', [ $this, 'clear_cache' ], 100);
+    add_action( 'admin_bar_menu', [ $this, 'clear_cache' ], 100 );
     add_action( 'init', [ $this, 'detect_clear_cache' ] );
 
     add_action( 'p_loaded', [ __CLASS__, 'check_nuxt_url' ] );
+
+    add_action( 'admin_print_footer_scripts-post.php', [ $this, 'regenerate_btn' ] );
   }
 
   public function admin_inits()
@@ -230,6 +232,72 @@ class Admin_Startup
           <?php
         } );
       }
+    }
+  }
+
+  public function regenerate_btn( $post )
+  {
+    if ( is_admin() ) {
+      $current_screen = get_current_screen();
+      $post           = get_post();
+
+      if ( 'post' == $current_screen->base ) {
+        if (
+          'publish' == $post->post_status &&
+          (
+            'post' == $post->post_type ||
+            'page' == $post->post_type ||
+            'product' == $post->post_type
+          )
+        ) {
+          ?>
+            <script type="text/javascript">
+              jQuery(document).ready(function($){
+                const regenerate = $(`
+                <button class="button is-button button-large is-green">
+                  <?php _e( 'Regenerate', 'nuxtapi' ); ?>
+                </button>`);
+
+                const component = regenerate.on('click', function(e){
+                  e.preventDefault();
+                  let ajax_field_value = {};
+
+                  ajax_field_value.action = 'try_regenerate_obj';
+                  ajax_field_value.ID = <?php echo $post->ID; ?>;
+                  $.ajax({
+                    type: "POST",
+                    url: NUXTAPIAJAX.url,
+                    data: ajax_field_value,
+                    beforeSend() {
+                      regenerate.text('<?php _e( 'Processing...', 'nuxtapi' ); ?>').addClass('animate-flash');
+                    },
+                    success: function( response ) {
+                      regenerate.removeClass('animate-flash').text('<?php _e( 'Regenerate', 'nuxtapi' ); ?>');
+                      quickyLog(response.data, 'Nuxt Log', response.success ? 'success' : 'error');
+                    },
+                    error: function( response ) {
+                      regenerate.removeClass('animate-flash').text('<?php _e( 'Regenerate', 'nuxtapi' ); ?>');
+                    }
+                  });
+                });
+
+                setTimeout(function(){
+                  if ( $('.editor-post-publish-button').length > 0 ) {
+                    component.addClass('components-button is-button is-default is-green is-large');
+                    $('.editor-post-publish-button').after(component);
+                  }
+
+                  if ( $('#publishing-action').length > 0 ) {
+                    component.addClass('button is-button button-large is-green');
+                    $('#publishing-action').prepend(component);
+                  }
+                }, 100)
+              });
+            </script>
+          <?php
+        }
+      }
+
     }
   }
 }

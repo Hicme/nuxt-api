@@ -17,15 +17,16 @@
         'value'       => wp_create_nonce('console_nonce'),
       ] );
 
-      if( $responce = self::check_npm() ){
+      if( $responce = nuxt_api()->npm->check_npm() ){
         ?>
         <div class="console_button_wrapper">
           <div class="version_console">
             NPM V: <?php echo $responce; ?>
           </div>
           <div class="buttons">
-            <button type="submit" name="console_action" value="generate-build" class="button button-secondary"><?php _e( 'Generate Build', 'wpabcf' ); ?></button>
-            <button type="submit" name="console_action" value="install" class="button button-secondary"><?php _e( 'Install Modules', 'wpabcf' ); ?></button>
+            <button type="submit" name="console_action" value="install" class="button button-secondary"><?php _e( 'Install NPM Modules', 'wpabcf' ); ?></button>
+            <button type="submit" name="console_action" value="generate-build" class="button button-secondary"><?php _e( 'NUXT Generate', 'wpabcf' ); ?></button>
+            <button type="submit" name="console_action" value="build" class="button button-secondary"><?php _e( 'NUXT Build', 'wpabcf' ); ?></button>
           </div>
         </div>
         <?php

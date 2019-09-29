@@ -2,7 +2,7 @@
 
 namespace admin\pages;
 
-class Nuxt
+class Console
 {
   public static function exec_comands()
   {
@@ -13,13 +13,18 @@ class Nuxt
         <?php
           if( wp_verify_nonce( $_REQUEST['_nonce'], 'console_nonce') ){
             if( $_REQUEST['console_action'] === 'generate-build' ){
-              $output = shell_exec('cd ' . ABSPATH . '/nuxtjs && npm run generate');
-              echo "<pre>$output</pre>";
+              $return  = nuxt_api()->npm->nuxt_generate();
+              echo "<pre>{$return}</pre>";
             }
 
             if( $_REQUEST['console_action'] === 'install' ){
-              $output = shell_exec('cd ' . ABSPATH . '/nuxtjs && npm install');
-              echo "<pre>$output</pre>";
+              $return  = nuxt_api()->npm->install_npm_modules();
+              echo "<pre>{$return}</pre>";
+            }
+
+            if( $_REQUEST['console_action'] === 'build' ){
+              $return  = nuxt_api()->npm->nuxt_build();
+              echo "<pre>{$return}</pre>";
             }
           } else {
             echo sprintf( '<h3>%s</h3>', __('Wrong token. Try again.', 'wpabcf') );
@@ -30,12 +35,6 @@ class Nuxt
     }
   }
 
-  public static function check_npm()
-  {
-    $output = exec('npm -v', $out, $err);
-    return $err ? false : $output;
-  }
-
   public static function render_content()
   {
     add_action('console_result', [ __CLASS__, 'exec_comands' ]);
@@ -44,6 +43,6 @@ class Nuxt
 
   public static function get_template()
   {
-    include P_PATH . 'includes/admin/templates/nuxt.php';
+    include P_PATH . 'includes/admin/templates/console.php';
   }
 }

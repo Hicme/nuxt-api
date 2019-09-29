@@ -2,9 +2,11 @@
 
 namespace system;
 
-class Post_Response
+class Json
 {
-  public static function response( $post )
+  use \system\Instance;
+
+  public function post( $post )
   {
     if (!is_object($post)) {
       $post = get_post($post);

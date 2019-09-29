@@ -238,3 +238,104 @@
   color: #fff;
   margin-bottom: 15px;
 }
+
+.is-button.is-green {
+  height: 31px!important;
+  background: #4caf50;
+  border-color: #4caf50 #388e3c #388e3c;
+  box-shadow: inset 0 -1px 0 #388e3c;
+  color: #fff;
+  text-decoration: none;
+  margin: 0 10px 0 5px;
+}
+
+.is-button.is-green:hover {
+  background: #388E3C;
+  text-decoration: none;
+  color: #fff;
+  box-shadow: inset 0 -1px 0 #388e3c;
+}
+
+.is-button.is-green:active:enabled,
+.is-button.is-green:focus:enabled {
+  background: #388E3C;
+  text-decoration: none;
+  color: #fff;
+  box-shadow: inset 0 -1px 0 #388e3c;
+}
+
+.quickyLog__wrapper {
+  position: fixed;
+  top: auto;
+  bottom: 0;
+  left: auto;
+  right: 6%;
+  background: #fdfdfd;
+  border: 1px solid #e2e2e2;
+  box-shadow: 0 0 3px rgba(136, 136, 136, 0.2);
+  padding: 0 0 3px;
+  min-width: 340px;
+  z-index: 9000;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+}
+
+.quickyLog__wrapper:hover {
+  opacity: 1;
+}
+
+.quickyLog__wrapper .quickyLog__top {
+  border-bottom: 1px solid #d8d8d8;
+  padding: 6px 10px;
+  background: #f2f2f2;
+  text-align: center;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+  position: relative;
+}
+
+.quickyLog__wrapper .quickyLog__top:after {
+  content: "\f142";
+  display: inline-block;
+  font: normal 20px/1 dashicons;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-decoration: none!important;
+  position: absolute;
+  left: auto;
+  right: 5px;
+  top: 5px;
+  transition: all 0.2s ease;
+  transform: rotateX(0);
+}
+
+.quickyLog__wrapper.opened .quickyLog__top:after {
+  transform: rotateX(180deg);
+}
+
+.quickyLog__wrapper .quickyLog__body {
+  padding: 5px 8px;
+}
+
+.quickyLog__wrapper .quickyLog__body .quickyLog__body_scroll {
+  overflow: hidden;
+  height: 20px;
+  transition: all 0.4s ease;
+}
+
+.quickyLog__wrapper.opened .quickyLog__body .quickyLog__body_scroll {
+  height: 390px;
+  overflow-y: scroll;
+}
+
+.animate-flash{
+  -webkit-animation: flash linear 1s infinite;
+  animation: flash linear 1s infinite;
+}
+
+@keyframes flash {
+  0% { opacity: 1; }
+  50% { opacity: .1; }
+  100% { opacity: 1; }
+}

@@ -12,6 +12,8 @@ class Ajax
 
     add_action('wp_ajax_loadPreview', [$this, 'loadPreview']);
     add_action('wp_ajax_nopriv_loadPreview', [$this, 'loadPreview']);
+
+    add_action('wp_ajax_try_regenerate_obj', [$this, 'regenerate_obj']);
   }
 
 
@@ -150,7 +152,21 @@ class Ajax
       }
 
       if ($last_revision) {
-        wp_send_json_success(nuxt_api()->prepareJsonPost($last_revision), 200);
+        wp_send_json_success(nuxt_api()->json->post($last_revision), 200);
+      }
+    }
+
+    wp_send_json_error(['message' => __('Nothing to show.', 'nuxtapi')], 405);
+  }
+
+  public function regenerate_obj()
+  {
+    if ( isset($_POST['ID']) && current_user_can('administrator') ) {
+      $post = get_post( $_POST['ID'] );
+
+      if ( in_array( $post->post_type, [ 'post', 'page', 'product' ] ) ) {
+        $response = nuxt_api()->npm->nuxt_generate_page( $post->post_type, get_permalink( $post ) );
+        wp_send_json_success( $response, 200);
       }
     }
 

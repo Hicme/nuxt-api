@@ -321,14 +321,14 @@
 .quickyLog__wrapper .quickyLog__body .quickyLog__body_scroll {
   overflow: hidden;
   height: 20px;
+  white-space: pre-line;
+  padding: 0 10px;
   transition: all 0.4s ease;
 }
 
 .quickyLog__wrapper.opened .quickyLog__body .quickyLog__body_scroll {
   height: 390px;
   overflow-y: scroll;
-  white-space: pre-line;
-  padding: 0 10px;
 }
 
 .animate-flash{
